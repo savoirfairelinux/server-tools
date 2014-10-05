@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    This module copyright (C) 2010 - 2014 Savoir-faire Linux
-#    (<http://www.savoirfairelinux.com>).
+#    Odoo, Open Source Management Solution
+#    This module copyright (C) $generation_date $author
+#    (<$website>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,7 +19,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from . import (
-    models,
-    wizard
-)
+from openerp.osv import fields, osv
+
+
+class $model_name(osv.osv):
+    _name = "$model_name"
+    _inherit = "$model_name"
+    _description = "$model_description"
+
+    _columns = {
+        $model_fields
+    }
+
+    _defaults = {
+        
+    }

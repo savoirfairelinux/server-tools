@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    This module copyright (C) 2010 - 2014 Savoir-faire Linux
-#    (<http://www.savoirfairelinux.com>).
+#    Odoo, Open Source Management Solution
+#    This module copyright (C) $generation_date $author
+#    (<$website>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,6 +20,5 @@
 #
 ##############################################################################
 from . import (
-    models,
-    wizard
+    $models.py
 )
