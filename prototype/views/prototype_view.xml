@@ -25,7 +25,7 @@
             <div class="oe_title">
               <h1><field name="summary"/></h1>
               <div>
-                <button name="button_generate_module" string="Generate" type="object"/>
+                <button name="%(button_module_export_action)d" string="Export" type="action"/>
               </div>
             </div>
             <group>
@@ -39,6 +39,7 @@
                 <field name="author"/>
                 <field name="website" widget="url"/>
                 <field name="maintainer"/>
+                <field name="auto_install"/>
               </group>
             </group>
             <notebook>

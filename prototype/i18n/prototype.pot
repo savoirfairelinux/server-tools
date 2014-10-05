@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-02 02:18+0000\n"
-"PO-Revision-Date: 2014-10-01 22:18-0500\n"
+"POT-Creation-Date: 2014-10-05 17:35+0000\n"
+"PO-Revision-Date: 2014-10-05 13:35-0500\n"
 "Last-Translator: Maxime Chambreuil <maxime.chambreuil@savoirfairelinux.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -15,6 +15,21 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: \n"
 "X-Generator: Poedit 1.5.4\n"
+
+#. module: prototype
+#: selection:prototype.module.export,api_version:0
+msgid "7.0"
+msgstr ""
+
+#. module: prototype
+#: selection:prototype.module.export,api_version:0
+msgid "8.0"
+msgstr ""
+
+#. module: prototype
+#: field:prototype.module.export,api_version:0
+msgid "API version"
+msgstr ""
 
 #. module: prototype
 #: field:prototype,rights:0
@@ -27,17 +42,32 @@ msgid "Author"
 msgstr ""
 
 #. module: prototype
+#: field:prototype,auto_install:0
+msgid "Auto Install"
+msgstr ""
+
+#. module: prototype
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Cancel"
+msgstr ""
+
+#. module: prototype
 #: field:prototype,category_id:0
 msgid "Category"
 msgstr ""
 
 #. module: prototype
-#: field:prototype,create_uid:0
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Close"
+msgstr ""
+
+#. module: prototype
+#: field:prototype,create_uid:0 field:prototype.module.export,create_uid:0
 msgid "Created by"
 msgstr ""
 
 #. module: prototype
-#: field:prototype,create_date:0
+#: field:prototype,create_date:0 field:prototype.module.export,create_date:0
 msgid "Created on"
 msgstr ""
 
@@ -52,14 +82,41 @@ msgid "Description"
 msgstr ""
 
 #. module: prototype
+#: view:prototype:prototype.view_prototype_form
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Export"
+msgstr ""
+
+#. module: prototype
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Export Complete"
+msgstr ""
+
+#. module: prototype
+#: model:ir.actions.act_window,name:prototype.button_module_export_action
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Export Module"
+msgstr ""
+
+#. module: prototype
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Export Settings"
+msgstr ""
+
+#. module: prototype
 #: model:ir.model,name:prototype.model_ir_model_fields
 #: field:prototype,fields:0
 msgid "Fields"
 msgstr ""
 
 #. module: prototype
-#: view:prototype:prototype.view_prototype_form
-msgid "Generate"
+#: field:prototype.module.export,data:0
+msgid "File"
+msgstr ""
+
+#. module: prototype
+#: field:prototype.module.export,name:0
+msgid "File Name"
 msgstr ""
 
 #. module: prototype
@@ -68,7 +125,12 @@ msgid "Groups"
 msgstr ""
 
 #. module: prototype
-#: field:prototype,id:0
+#: view:prototype.module.export:prototype.view_module_export_wizard
+msgid "Here is the exported module:"
+msgstr ""
+
+#. module: prototype
+#: field:prototype,id:0 field:prototype.module.export,id:0
 msgid "ID"
 msgstr ""
 
@@ -83,12 +145,12 @@ msgid "Interface"
 msgstr ""
 
 #. module: prototype
-#: field:prototype,write_uid:0
+#: field:prototype,write_uid:0 field:prototype.module.export,write_uid:0
 msgid "Last Updated by"
 msgstr ""
 
 #. module: prototype
-#: field:prototype,write_date:0
+#: field:prototype,write_date:0 field:prototype.module.export,write_date:0
 msgid "Last Updated on"
 msgstr ""
 
@@ -163,4 +225,19 @@ msgstr ""
 #. module: prototype
 #: field:prototype,website:0
 msgid "Website"
+msgstr ""
+
+#. module: prototype
+#: selection:prototype.module.export,state:0
+msgid "choose"
+msgstr ""
+
+#. module: prototype
+#: selection:prototype.module.export,state:0
+msgid "get"
+msgstr ""
+
+#. module: prototype
+#: field:prototype.module.export,state:0
+msgid "unknown"
 msgstr ""
