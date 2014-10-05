@@ -37,6 +37,7 @@ class prototype(osv.osv):
         'website': fields.char('Website'),
         'icon_image': fields.binary('Icon'),
         'version': fields.char('Version', size=3),
+        'auto_install': fields.boolean('Auto Install'),
         # Relations
         'depends': fields.many2many('ir.module.module', 'prototype_module_rel',
                                     'prototype_id', 'module_id',
@@ -57,12 +58,6 @@ class prototype(osv.osv):
     }
 
     _defaults = {
+        'auto_install': False,
         'version': '0.1',
     }
-
-    def button_generate_module():
-        """
-        Generate a zip file containing the module based on the information
-        provided in the prototype.
-        """
-        pass

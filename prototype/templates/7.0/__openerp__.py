@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    This module copyright (C) 2010 - 2014 Savoir-faire Linux
-#    (<http://www.savoirfairelinux.com>).
+#    Odoo, Open Source Management Solution
+#    This module copyright (C) $export_date $author
+#    (<$website>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,47 +21,30 @@
 ##############################################################################
 
 {
-    'name': 'Prototype',
-    'version': '0.1',
-    'author': 'Savoir-faire Linux',
-    'maintainer': 'Savoir-faire Linux',
-    'website': 'http://www.savoirfairelinux.com',
+    'name': '$name',
+    'version': '$version',
+    'author': '$author',
+    'maintainer': '$maintainer',
+    'website': '$website',
     'license': 'AGPL-3',
-    'category': 'Others',
-    'summary': 'Prototype your module',
+    'category': '$category',
+    'summary': '$summary',
     'description': """
-This module allows the administrator to prototype new features and export
-them as module.
+$description
 
-Usage
-=====
-
-Go to Settings > Modules > Prototype, create a new prototype, fill in the
-information and export your module.
-
-Contributors
-============
-
-* Maxime Chambreuil <maxime.chambreuil@savoirfairelinux.com>
-* Savoir-faire Linux <support@savoirfairelinux.com>
-
-More informations
------------------
-* Module developped and tested with Odoo version 8.0
-* For questions, please contact our support services \
+* Module exported by the prototype module for version 7.0.
+* If you have any questions, please contact Savoir-faire Linux \
 (support@savoirfairelinux.com)
 """,
     'depends': [
-        'base',
+        $depends
     ],
     'external_dependencies': {
         'python': [],
     },
     'data': [
-        'wizard/prototype_module_export_view.xml',
-        'views/prototype_view.xml',
-        'views/ir_model_fields_view.xml',
-        'security/ir.model.access.csv',
+        $data
     ],
     'installable': True,
+    'auto_install': $auto_install,
 }
