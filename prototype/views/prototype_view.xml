@@ -49,6 +49,12 @@
               <page string="Dependencies">
                 <field name="depends"/>
               </page>
+              <page string="Data &amp; Demo">
+                <label for="data"/>
+                <field name="data"/>
+                <label for="demo"/>
+                <field name="demo"/>
+              </page>
               <page string="Models">
                 <label for="fields"/>
                 <field name="fields" domain="[('state', '=', 'manual')]"/>

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-05 17:35+0000\n"
-"PO-Revision-Date: 2014-10-05 13:35-0500\n"
+"POT-Creation-Date: 2014-10-08 17:58+0000\n"
+"PO-Revision-Date: 2014-10-08 14:00-0500\n"
 "Last-Translator: Maxime Chambreuil <maxime.chambreuil@savoirfairelinux.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -69,6 +69,21 @@ msgstr ""
 #. module: prototype
 #: field:prototype,create_date:0 field:prototype.module.export,create_date:0
 msgid "Created on"
+msgstr ""
+
+#. module: prototype
+#: view:prototype:prototype.view_prototype_form
+msgid "Data & Demo"
+msgstr ""
+
+#. module: prototype
+#: field:prototype,data:0
+msgid "Data filters"
+msgstr ""
+
+#. module: prototype
+#: field:prototype,demo:0
+msgid "Demo filters"
 msgstr ""
 
 #. module: prototype
@@ -210,6 +225,16 @@ msgstr ""
 #. module: prototype
 #: field:prototype,name:0
 msgid "Technical Name"
+msgstr ""
+
+#. module: prototype
+#: help:prototype,data:0
+msgid "The records matching the filters will be added as data."
+msgstr ""
+
+#. module: prototype
+#: help:prototype,demo:0
+msgid "The records matching the filters will be added as demo data."
 msgstr ""
 
 #. module: prototype
