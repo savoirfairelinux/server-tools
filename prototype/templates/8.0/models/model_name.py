@@ -19,16 +19,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp.osv import fields, osv
+from openerp import models, fields
 
+class {{ name }}(models.Model):
+    _name = "{{ name }}"
+    _inherit = "{{ inherit }}"
+    _description = "{{ description}}"
 
-class $model_name(osv.osv):
-    _name = "$model_name"
-    _inherit = "$model_name"
-    _description = "$model_description"
+    {# comment #}
+    Verifier les champs des champs
+    {# endcomment #}
+    {% for field in fields %}
+    {{ field.name }} = fields.{{ field.type }}(
+        string="{{ field.string }}", 
+        {% field_options() %}
+    )
+    {% endfor %}
 
-    $model_fields
-
-    _defaults = {
-        
-    }

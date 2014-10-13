@@ -2,9 +2,9 @@
 <openerp>
   <data>
 
-    $groups
+      {{ groups }}
 
-    $rules
+      {{ rules }}
 
   </data>
 </openerp>
