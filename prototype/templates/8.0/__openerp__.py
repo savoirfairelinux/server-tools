@@ -21,30 +21,30 @@
 ##############################################################################
 
 {
-    'name': '$name',
-    'version': '$version',
-    'author': '$author',
-    'maintainer': '$maintainer',
-    'website': '$website',
+    'name': '{{ name }}',
+    'version': '{{ version }}',
+    'author': '{{ author }}',
+    'maintainer': '{{ maintainer }}',
+    'website': '{{ website }}',
     'license': 'AGPL-3',
-    'category': '$category',
-    'summary': '$summary',
+    'category': '{{ category }}',
+    'summary': '{{ summary }}',
     'description': """
-$description
+{{ description }}
 
 * Module exported by the prototype module for version 8.0.
 * If you have any questions, please contact Savoir-faire Linux \
 (support@savoirfairelinux.com)
 """,
     'depends': [
-        $depends
+        {% for dependency in dependencies %}'{{ dependency }}',\r {% endfor %}
     ],
     'external_dependencies': {
         'python': [],
     },
     'data': [
-        $data
+        {% for data_file in data_files %}'{{ data_file }}',\r {% endfor %}
     ],
     'installable': True,
-    'auto_install': $auto_install,
+    'auto_install': {{ auto_install }},
 }

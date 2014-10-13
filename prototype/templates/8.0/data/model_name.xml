@@ -2,7 +2,7 @@
 <openerp>
   <data>
 
-    $data
+      {{ data }}
 
   </data>
 </openerp>
