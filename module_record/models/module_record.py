@@ -25,59 +25,68 @@ import StringIO
 import time
 import zipfile
 
-from openerp.osv import orm, fields
 from openerp.tools.translate import _
+from openerp import models, fields, api
 
 
-class BaseModuleRecord(orm.TransientModel):
-    _name = 'base.module.record'
-    _description = "Base Module Record"
+class module_record(models.TransientModel):
+    _name = 'module.record'
+    _description = "Module Record"
 
-    _columns = {
-        'state': fields.selection(
-            [('draft', 'Draft'), ('done', 'Done')], 'State', readonly=True
-        ),
-        'start_date': fields.datetime('Records from', required=True),
-        'date_filter': fields.selection([
+    state = fields.Selection(
+        [('draft', 'Draft'), ('done', 'Done')],
+        'State',
+        readonly=True,
+        default='draft'
+    ),
+    start_date = fields.Datetime(
+        'Records from',
+        default=lambda *a: time.strftime('%Y-%m-%d %H:%M:%S'),
+        required=True
+    ),
+    date_filter = fields.Selection(
+        [
             ('create', 'created'),
             ('write', 'modified'),
             ('create_write', 'created or modified'),
-        ], 'Records only', required=True),
-        'model_ids': fields.many2many(
-            'ir.model', 'base_module_record_model_rel',
-            'wizard_id', 'model_id', 'Objects',
-            domain=[('osv_memory', '=', False)]
-        ),
-        'file': fields.binary('File', filename='filename', readonly=True),
-        'filename': fields.char('Filename', size=64, required=True),
-        'filetype': fields.selection(
-            [('csv', 'CSV'), ('yml', 'YAML')], 'Filetype', required=True
-        ),
-    }
+        ],
+        'Records only',
+        default='create_write',
+        required=True
+    ),
+    model_ids = fields.Many2many(
+        'ir.model', 'base_module_record_model_rel',
+        'wizard_id', 'model_id', 'Objects',
+        domain=[('osv_memory', '=', False)]
+    ),
+    file = fields.Binary('File', filename='filename', readonly=True),
+    filename = fields.Char(
+        'Filename',
+        size=64,
+        default='data_module',
+        required=True
+    ),
+    filetype = fields.Selection(
+        [('csv', 'CSV'), ('yml', 'YAML')],
+        'Filetype',
+        default='csv',
+        required=True
+    ),
 
-    _defaults = {
-        'state': 'draft',
-        'start_date': lambda *a: time.strftime('%Y-%m-%d %H:%M:%S'),
-        'date_filter': 'create_write',
-        'filename': 'data_module.zip',
-        'filetype': 'csv',
-    }
-
-    def _get_models(self, cr, uid, wizard, context=None):
+    @api.model
+    def _get_models(self, wizard):
         models = wizard.model_ids
         if not models:
             model_obj = self.pool.get('ir.model')
-            model_ids = model_obj.search(
-                cr, uid, [('osv_memory', '=', False)], context=context
-            )
+            model_ids = model_obj.search([('osv_memory', '=', False)])
             models = [
-                model
-                for model in model_obj.browse(cr, uid, model_ids, context)
+                model for model in model_obj.browse(model_ids)
                 if self.pool.get(model.model)._auto
             ]
         return models
 
-    def _get_domain(self, cr, uid, wizard, context=None):
+    @api.model
+    def _get_domain(self, wizard):
         domain = []
         if 'create' in wizard.date_filter:
             domain.append(('create_date', '>=', wizard.start_date))
@@ -109,35 +118,27 @@ class BaseModuleRecord(orm.TransientModel):
         )
         return [('ir.property', rows)]
 
-    def _export_data_by_model(self, cr, uid, wizard, context=None):
-        models = self._get_models(cr, uid, wizard, context)
+    @api.model
+    def _export_data_by_model(self, wizard):
+        models = self._get_models(wizard)
         model_ids = [model.id for model in models]
-        datas = self.pool.get('ir.model').get_model_graph(
-            cr, uid, model_ids, context
-        )
-        domain = self._get_domain(cr, uid, wizard, context)
+        datas = self.pool.get('ir.model').get_model_graph(model_ids)
+        domain = self._get_domain(wizard)
         res_ids_by_model = {}
         for index, (model, fields_to_export) in enumerate(datas):
             res_obj = self.pool.get(model)
-            res_ids = res_obj.search(
-                cr, uid, res_obj._log_access and domain or [], context=context
-            )
+            res_ids = res_obj.search(res_obj._log_access and domain or [])
             if 'parent_left' in res_obj._columns:
                 res_ids = res_obj.search(
-                    cr, uid,  [('id', 'in', res_ids)],
-                    order='parent_left', context=context
+                    [('id', 'in', res_ids)], order='parent_left'
                 )
             res_ids_by_model[model] = res_ids
             rows = [fields_to_export]
             rows.extend(
-                res_obj.export_data(
-                    cr, uid, res_ids, fields_to_export, context)['datas']
-            )
+                res_obj.export_data(res_ids, fields_to_export)['datas'])
             datas[index] = (model, rows)
         datas.extend(
-            self._export_ir_properties(
-                cr, uid, models, res_ids_by_model, context
-            )
+            self._export_ir_properties(models, res_ids_by_model)
         )
         return datas
 
@@ -165,14 +166,15 @@ class BaseModuleRecord(orm.TransientModel):
     def _convert_to_yml(rows):
         raise NotImplemented
 
-    def _get_data_filecontent(self, cr, uid, wizard, context=None):
+    @api.model
+    def _get_data_filecontent(self, wizard):
         data_files = []
-        for model, rows in self._export_data_by_model(cr, uid, wizard, context):
+        for model, rows in self._export_data_by_model(wizard):
             data_files.append(
                 (
                     model,
                     getattr(
-                        BaseModuleRecord,
+                        module_record,
                         '_convert_to_%s' % wizard.filetype
                     )(rows)
                 )
@@ -192,9 +194,10 @@ class BaseModuleRecord(orm.TransientModel):
                 filenames.append(filename)
         return filenames
 
-    def _get_dependencies(self, cr, uid, wizard, context=None):
+    @api.model
+    def _get_dependencies(self, wizard):
         modules = []
-        for model in self._get_models(cr, uid, wizard, context):
+        for model in self._get_models(wizard):
             modules.extend(model.modules.split(', '))
         return ', '.join(map(lambda mod: '"%s"' % mod, set(modules)))
 
@@ -217,18 +220,19 @@ class BaseModuleRecord(orm.TransientModel):
     "installable": True,
 }"""
 
-    def create_module(self, cr, uid, ids, context=None):
+    @api.model
+    def create_module(self, ids):
         if isinstance(ids, (int, long)):
             ids = [ids]
-        for wizard in self.browse(cr, uid, ids, context):
-            datas = self._get_data_filecontent(cr, uid, wizard, context)
+        for wizard in self.browse(ids):
+            datas = self._get_data_filecontent(wizard)
             models = [model for model, rows in datas]
-            filenames = BaseModuleRecord._get_data_filename(
+            filenames = module_record._get_data_filename(
                 models, wizard.filetype)
             zip_content = {
                 '__init__.py': "#\n# Generated by module_record\n#\n",
                 '__openerp__.py': self.openerp_filecontent % {
-                    'dependencies': self._get_dependencies(cr, uid, wizard, context),
+                    'dependencies': self._get_dependencies(wizard),
                     'data_files': ',\n        '.join(
                         map(lambda model: '"%s"' % model, filenames)
                     ),
@@ -249,30 +253,34 @@ class BaseModuleRecord(orm.TransientModel):
             )
         return True
 
-    def set_to_draft(self, cr, uid, ids, context=None):
+    @api.model
+    def set_to_draft(self, ids):
         return self.write(
-            cr, uid, ids, {'state': 'draft', 'file': False}, context
+            ids, {'state': 'draft', 'file': False},
         )
 
-    def open_wizard(self, cr, uid, ids, context=None):
+    @api.model
+    def open_wizard(self, ids):
         assert len(ids) == 1, "ids must be a list with only one id"
         return {
             'name': _('Export Customizations as a Module'),
             'view_type': 'form',
             'view_mode': 'form',
             'view_id': False,
-            'res_model': 'base.module.record',
+            'res_model': 'module.record',
             'domain': [],
-            'context': context,
+            'context': self._context,
             'type': 'ir.actions.act_window',
             'target': 'new',
             'res_id': ids[0],
         }
 
-    def button_create_module(self, cr, uid, ids, context=None):
-        self.create_module(cr, uid, ids, context)
-        return self.open_wizard(cr, uid, ids, context)
+    @api.model
+    def button_create_module(self, ids):
+        self.create_module(ids)
+        return self.open_wizard(ids)
 
-    def button_set_to_draft(self, cr, uid, ids, context=None):
-        self.set_to_draft(cr, uid, ids, context)
-        return self.open_wizard(cr, uid, ids, context)
+    @api.model
+    def button_set_to_draft(self, ids):
+        self.set_to_draft(ids)
+        return self.open_wizard(ids)
