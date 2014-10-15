@@ -18,5 +18,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-import module_record
+from . import ir_model
+from . import orm
+from . import module_record

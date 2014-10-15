@@ -18,7 +18,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-import ir_model
-import orm
-import wizard
+from . import models
