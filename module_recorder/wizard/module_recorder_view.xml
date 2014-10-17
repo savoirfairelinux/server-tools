@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Module Record -->
+
+        <record id="view_module_recorder_form" model="ir.ui.view">
+            <field name="name">module.record.form</field>
+            <field name="model">module.recorder</field>
+            <field name="arch" type="xml">
+                <form string="Export Customizations as a Module">
+                    <field name="state" invisible="1"/>
+                    <group colspan="4" col="4" states="draft">
+                        <separator string="Options" colspan="4"/>
+                        <field name="date_filter" string="Records"/>
+                        <field name="start_date" string="from"/>
+                        <group colspan="4" col="1" expand="0">
+                            <label string="Keep empty to use all models"/>
+                            <field name="model_ids" nolabel="1"/>
+                        </group>
+                    </group>
+                    <group colspan="4" col="2" states="done">
+                        <separator string="File" colspan="2"/>
+                        <field name="file" nolabel="1" filename="filename"
+                               colspan="4"/>
+                        <field name="filename" invisible="1"/>
+                    </group>
+                    <footer states="draft">
+                        <button name="button_create_module" type='object'
+                                string="Create Module" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link"
+                                special="cancel"/>
+                    </footer>
+                    <footer states="done">
+                        <button string="Close" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_module_recorder">
+            <field name="name">Export Data as a Module</field>
+            <field name="res_model">module.recorder</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="nodestroy" eval="True"/>
+            <field name="target">new</field>
+            <field name="view_id" ref="view_module_recorder_form"/>
+        </record>
+
+        <menuitem id="menu_module_recorder"
+                  parent="base.menu_management"
+                  action="action_module_recorder"
+                  sequence="90"/>
+
+    </data>
+</openerp>
