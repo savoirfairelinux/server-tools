@@ -19,7 +19,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp import models
+import os
+from datetime import date
+from collections import namedtuple
+from jinja2 import Environment, FileSystemLoader
+from openerp import models, api
 
 # to avoid conflicts with a field of the new model.
 from openerp import fields as oe_fields
@@ -33,7 +37,7 @@ class prototype(models.Model):
     category_id = oe_fields.Many2one('ir.module.category', 'Category')
     human_name = oe_fields.Char('Module Name', required=True)
     summary = oe_fields.Char('Summary', required=True)
-    description = oe_fields.Html('Description', required=True)
+    description = oe_fields.Text('Description', required=True)
     author = oe_fields.Char('Author', required=True)
     maintainer = oe_fields.Char('Maintainer')
     website = oe_fields.Char('Website')
@@ -86,3 +90,76 @@ class prototype(models.Model):
         'prototype_id', 'rule_id', 'Record Rules'
     )
 
+    _env = None
+    File_details = namedtuple('file_details', ['filename', 'filecontent'])
+    template_path = '{}/../templates/'.format(os.path.dirname(__file__))
+
+    @api.model
+    def set_jinja_env(self, api_version):
+        """Set the Jinja2 environment.
+        The environment will helps the system to find the templates to render.
+        :param api_version: string, odoo api
+        :return: jinja2.Environment instance.
+        """
+        if self._env is None:
+            self._env = Environment(
+                loader=FileSystemLoader(
+                    os.path.join(self.template_path, api_version)
+                )
+            )
+        return self._env
+
+    @api.model
+    def generate_files(self):
+        """ Generates the files from the details of the prototype.
+        :return: tuple
+        """
+        assert self._env is not None, \
+            'Run set_env(api_version) before to generate files.'
+
+        file_details = [
+            self.generate_module_openerp_file_details(),
+            self.generate_module_init_file_details(),
+        ]
+
+        return file_details
+
+    @api.model
+    def generate_module_openerp_file_details(self):
+        """Wrapper to generate the __openerp__.py file of the module."""
+        return self.generate_file_details(
+            '__openerp__.py',
+            '__openerp__.py.template',
+            name=self.name,
+            version=self.version,
+            author=self.author,
+            maintainer=self.maintainer,
+            website=self.website,
+            category=self.category_id.name,
+            summary=self.summary,
+            description=self.description,
+            dependencies=[dependency.name for dependency in self.dependencies],
+            auto_install=self.auto_install,
+            export_date=date.today().year,
+        )
+
+    @api.model
+    def generate_module_init_file_details(self):
+        """Wrapper to generate the __init__.py file of the module."""
+        return self.generate_file_details(
+            '__init__.py',
+            '__init__.py.template',
+            models=bool(self.fields)
+        )
+
+    @api.model
+    def generate_file_details(self, filename, template, **kwargs):
+        """ generate file details from jinja2 template.
+        :param filename: name of the file the content is related to
+        :param template: path to the file to render the content
+        :param kwargs: arguments of the template
+        :return: File_details instance
+        """
+        template = self._env.get_template(template)
+        ret = self.File_details(filename, template.render(kwargs))
+        return ret

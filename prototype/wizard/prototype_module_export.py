@@ -66,15 +66,12 @@ class prototype_module_export(models.TransientModel):
                 self, active_model
             )
 
+        # getting the prototype of the wizard
         prototype_model = self.env[active_model]
-        prototype = prototype_model.browse(
-            self._context.get('active_id')
-        )
-        # files = prototype.generate_files()
-        file_details = (
-            ('test.txt', 'generated'),
-        )
-        zip_details = self.zip_files(file_details)
+        prototype = prototype_model.browse(self._context.get('active_id'))
+        # setting the jinja environment
+        prototype.set_jinja_env(wizard.api_version)
+        zip_details = self.zip_files(prototype.generate_files())
 
         wizard.write(
             {
@@ -96,6 +93,10 @@ class prototype_module_export(models.TransientModel):
 
     @staticmethod
     def zip_files(file_details):
+        """Takes a set of file and zips them.
+        :param file_details: tuple (filename, filecontent)
+        :return: tuple (zip_file, stringIO)
+        """
         Zip_details = namedtuple('Zip_details', ['zip_file', 'stringIO'])
         out = StringIO.StringIO()
 
