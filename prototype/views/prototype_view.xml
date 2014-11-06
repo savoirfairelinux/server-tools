@@ -8,7 +8,7 @@
       <field name="arch" type="xml">
         <tree string="Prototype">
           <field name="name"/>
-          <field name="shortdesc"/>
+          <field name="human_name"/>
           <field name="summary"/>
         </tree>
       </field>
@@ -31,7 +31,7 @@
             <group>
               <group>
                 <field name="name"/>
-                <field name="shortdesc"/>
+                <field name="human_name"/>
                 <field name="category_id"/>
                 <field name="version"/>
               </group>
@@ -47,7 +47,7 @@
                 <field name="description"/>
               </page>
               <page string="Dependencies">
-                <field name="depends"/>
+                <field name="dependencies"/>
               </page>
               <page string="Data &amp; Demo">
                 <label for="data"/>

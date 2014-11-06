@@ -19,66 +19,69 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp import models, fields
+from openerp import models
+
+# to avoid conflicts with a field of the new model.
+from openerp import fields as oe_fields
 
 
 class prototype(models.Model):
     _name = "prototype"
     _description = "Prototype"
 
-    name = fields.Char('Technical Name', required=True)
-    category_id = fields.Many2one('ir.module.category', 'Category')
-    shortdesc = fields.Char('Module Name', required=True)
-    summary = fields.Char('Summary', required=True)
-    description = fields.Html('Description', required=True)
-    author = fields.Char('Author', required=True)
-    maintainer = fields.Char('Maintainer')
-    website = fields.Char('Website')
-    icon_image = fields.Binary('Icon')
-    version = fields.Char('Version', size=3, default='0.1')
-    auto_install = fields.Boolean('Auto Install', default=False)
+    name = oe_fields.Char('Technical Name', required=True)
+    category_id = oe_fields.Many2one('ir.module.category', 'Category')
+    human_name = oe_fields.Char('Module Name', required=True)
+    summary = oe_fields.Char('Summary', required=True)
+    description = oe_fields.Html('Description', required=True)
+    author = oe_fields.Char('Author', required=True)
+    maintainer = oe_fields.Char('Maintainer')
+    website = oe_fields.Char('Website')
+    icon_image = oe_fields.Binary('Icon')
+    version = oe_fields.Char('Version', size=3, default='0.1')
+    auto_install = oe_fields.Boolean('Auto Install', default=False)
     # Relations
-    dependencies = fields.Many2many(
+    dependencies = oe_fields.Many2many(
         'ir.module.module', 'prototype_module_rel',
         'prototype_id', 'module_id',
         'Dependencies'
     )
-    data = fields.Many2many(
+    data = oe_fields.Many2many(
         'ir.filters',
         'prototype_data_rel',
         'prototype_id', 'filter_id',
         'Data filters',
         help="The records matching the filters will be added as data."
     )
-    demo = fields.Many2many(
+    demo = oe_fields.Many2many(
         'ir.filters',
         'prototype_demo_rel',
         'prototype_id', 'filter_id',
         'Demo filters',
         help="The records matching the filters will be added as demo data."
     )
-    fields = fields.Many2many(
+    fields = oe_fields.Many2many(
         'ir.model.fields', 'prototype_fields_rel',
         'prototype_id', 'field_id', 'Fields'
     )
-    menu = fields.Many2many(
+    menu = oe_fields.Many2many(
         'ir.ui.menu', 'prototype_menu_rel',
         'prototype_id', 'menu_id', 'Menu Items'
     )
-    views = fields.Many2many(
+    views = oe_fields.Many2many(
         'ir.ui.view', 'prototype_view_rel',
         'prototype_id', 'view_id', 'Views'
     )
-    groups = fields.Many2many(
+    groups = oe_fields.Many2many(
         'res.groups', 'prototype_groups_rel',
         'prototype_id', 'group_id', 'Groups'
     )
-    rights = fields.Many2many(
+    rights = oe_fields.Many2many(
         'ir.model.access', 'prototype_rights_rel',
         'prototype_id', 'right_id',
         'Access Rights'
     )
-    rules = fields.Many2many(
+    rules = oe_fields.Many2many(
         'ir.rule', 'prototype_rule_rel',
         'prototype_id', 'rule_id', 'Record Rules'
     )

@@ -26,4 +26,3 @@ class ir_model_fields(models.Model):
     _inherit = "ir.model.fields"
 
     notes = fields.Text('Notes')
-
