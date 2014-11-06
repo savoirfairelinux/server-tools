@@ -17,18 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from jinja2 import Environment
+from jinja2.exceptions import TemplateNotFound
 from openerp.tests import common
 
 
 class test_prototype(common.TransactionCase):
     def setUp(self):
         super(test_prototype, self).setUp()
-        self.main_model = self.env[
-            'prototype'
-        ]
-        self.module_category_model = self.env[
-            'ir.module.category'
-        ]
+        self.main_model = self.env['prototype']
+        self.module_category_model = self.env['ir.module.category']
+        self.module_module_model = self.env['ir.module.module']
 
         self.prototype = self.main_model.create({
             'name': 't_name',
@@ -39,8 +38,38 @@ class test_prototype(common.TransactionCase):
             'author': 't_author',
             'maintainer': 't_maintainer',
             'website': 't_website',
+            'dependencies': [(6, 0, [1,2,3,4])],
         })
+        self.api_version = '8.0'
 
-    def _test_generate_files(self):
-        """Test it returns a ."""
-        self.assertTrue(False)
+    def test_generate_files_assert_if_no_env(self):
+        self.assertRaises(
+            AssertionError,
+            self.prototype.generate_files
+        )
+
+    def test_generate_files(self):
+        """Test it returns a tuple."""
+        self.prototype.set_jinja_env(self.api_version)
+        details = self.prototype.generate_files()
+        self.assertIsInstance(details, list)
+        # namedtuples in tuple
+        for file_details in details:
+            self.assertIsInstance(file_details, tuple)
+            self.assertIsInstance(file_details.filename, basestring)
+            self.assertIsInstance(file_details.filecontent, basestring)
+
+    def test_generate_files_raise_TemplateNotFound_if_not_found(self):
+        self.prototype.set_jinja_env('t_api_version')
+        self.assertRaises(
+            TemplateNotFound,
+            self.prototype.generate_files
+        )
+
+    def test_set_env(self):
+        """test the jinja2 environment is set."""
+        self.assertIsNone(self.prototype._env)
+        self.prototype.set_jinja_env(self.api_version)
+        self.assertIsInstance(
+            self.prototype._env, Environment
+        )

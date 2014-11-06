@@ -2,8 +2,8 @@
 ##############################################################################
 #
 #    Odoo, Open Source Management Solution
-#    This module copyright (C) $export_date $author
-#    (<$website>).
+#    This module copyright (C) {{ export_date }} {{ author }}
+#    ({{ website }}).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -37,14 +37,21 @@
 (support@savoirfairelinux.com)
 """,
     'depends': [
-        {% for dependency in dependencies %}'{{ dependency }}',\r {% endfor %}
-    ],
+        {% for dependency in dependencies -%}
+            '{{ dependency }}',
+        {% endfor -%}],
     'external_dependencies': {
         'python': [],
     },
     'data': [
-        {% for data_file in data_files %}'{{ data_file }}',\r {% endfor %}
-    ],
+        {% for data_file in data_files -%}
+            '{{ data_file }}',
+        {% endfor -%}],
+    'demo': [
+        {% for demo_file in demo_files -%}
+            '{{ demo_file }}',
+        {% endfor -%}],
     'installable': True,
     'auto_install': {{ auto_install }},
 }
+
