@@ -57,7 +57,7 @@
               </page>
               <page string="Models">
                 <label for="fields"/>
-                <field name="fields" domain="[('state', '=', 'manual')]"/>
+                <field name="fields"/>
               </page>
               <page string="Interface">
                 <label for="menu"/>
