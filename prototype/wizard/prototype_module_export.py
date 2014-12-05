@@ -97,7 +97,7 @@ class prototype_module_export(models.TransientModel):
         :param file_details: tuple (filename, filecontent)
         :return: tuple (zip_file, stringIO)
         """
-        Zip_details = namedtuple('Zip_details', ['zip_file', 'stringIO'])
+        zip_details = namedtuple('Zip_details', ['zip_file', 'stringIO'])
         out = StringIO.StringIO()
 
         with zipfile.ZipFile(out, 'w') as target:
@@ -107,4 +107,4 @@ class prototype_module_export(models.TransientModel):
                 info.external_attr = 2175008768  # specifies mode 0644
                 target.writestr(info, filecontent)
 
-            return Zip_details(zip_file=target, stringIO=out)
+            return zip_details(zip_file=target, stringIO=out)
