@@ -69,8 +69,16 @@ class prototype_module_export(models.TransientModel):
         # getting the prototype of the wizard
         prototype_model = self.env[active_model]
         prototype = prototype_model.browse(self._context.get('active_id'))
-        # setting the jinja environment
+
+        # setting the jinja environment.
+        # They will help the program to find the template to render the files
+        # with.
         prototype.set_jinja_env(wizard.api_version)
+
+        # generate_files ask the prototype to investigate the input
+        # and to generate the file templates according to it.
+        # zip_files, in another hand, put all the template files into a package
+        # ready to be saved by the user.
         zip_details = self.zip_files(prototype.generate_files())
 
         wizard.write(
