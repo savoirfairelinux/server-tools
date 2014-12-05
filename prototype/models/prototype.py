@@ -118,6 +118,7 @@ class prototype(models.Model):
             'Run set_env(api_version) before to generate files.'
 
         file_details = [
+            self.generate_models_details(),
             self.generate_module_openerp_file_details(),
             self.generate_module_init_file_details(),
         ]
@@ -151,6 +152,40 @@ class prototype(models.Model):
             '__init__.py.template',
             models=bool(self.fields)
         )
+
+    @api.model
+    def generate_models_details(self):
+        """Finds the models from the list of fields and generates
+        the __init__ file and each models files (one by class).
+        """
+        import pprint
+        relations = {}
+        for field in self.fields:
+            relations.setdefault(field.model, []).append(field)
+
+        # Getting the name of all dependencies to see if the modules
+        # the fields belongs to are in it already or not.
+        dependency_names = [d.name for d in self.dependencies]
+
+
+        ref = self.env['ir.model.data']
+        for module_name in relations:
+            # if the module is not in the dependencies, it has to be added.
+            # that means find the module object and add it to the list
+            # of dependencies
+            if not module_name in dependency_names:
+                base_name = module_name.split('.')[0]
+                if base_name == 'res':
+                    base_name = 'base'
+                module_name = '.'.join(module_name.split('.')[1:])
+
+                print base_name, module_name
+                # module_object = ref.get_object(module_name.split('.'))
+                # print module_object
+
+
+
+        return ()
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
