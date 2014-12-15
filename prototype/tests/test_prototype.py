@@ -74,10 +74,10 @@ class test_prototype(common.TransactionCase):
             self.prototype._env, Environment
         )
 
-    def test_python_friendly_name_return(self):
+    def test_friendly_name_return(self):
         """Test if the returns match the pattern."""
         name = 'res.partner'
         self.assertEqual(
-            self.prototype.python_friendly_name(name),
+            self.prototype.friendly_name(name),
             name.replace('.', '_')
         )
