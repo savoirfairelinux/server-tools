@@ -20,19 +20,21 @@
 #
 ##############################################################################
 from openerp import models, fields
+from openerp.tool.translate import _
+
 
 class {{ name }}(models.Model):
-    _name = "{{ name }}"
     _inherit = "{{ inherit }}"
-    _description = "{{ description}}"
+    {% if description %}
+    _description = "{{ description }}"
+    {% endif %}
 
     {# comment #}
-    Verifier les champs des champs
+    # Verifier les champs
     {# endcomment #}
-    {% for field in fields %}
-    {{ field.name }} = fields.{{ field.type }}(
-        string="{{ field.string }}", 
-        {% field_options() %}
+    {% for field in fields -%}
+    {{ field.name }} = fields.{{ field.ttype }}(
+        string=_("{{ field.field_description }}"),
     )
     {% endfor %}
 

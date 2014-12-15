@@ -30,6 +30,8 @@ class prototype_module_export(models.TransientModel):
     _name = "prototype.module.export"
 
     name = fields.Char('File Name', readonly=True)
+    # It is implemented in order to manage previous and next versions
+    # of odoo
     api_version = fields.Selection(
         [
             ('8.0', '8.0'),
@@ -42,8 +44,8 @@ class prototype_module_export(models.TransientModel):
     data = fields.Binary('File', readonly=True)
     state = fields.Selection(
         [
-            ('choose', 'choose'),  #  choose version
-            ('get', 'get')  #  get module
+            ('choose', 'choose'),  # choose version
+            ('get', 'get')  # get module
         ],
         default='choose'
     )
@@ -67,8 +69,9 @@ class prototype_module_export(models.TransientModel):
             )
 
         # getting the prototype of the wizard
-        prototype_model = self.env[active_model]
-        prototype = prototype_model.browse(self._context.get('active_id'))
+        prototype = self.env[active_model].browse(
+            self._context.get('active_id')
+        )
 
         # setting the jinja environment.
         # They will help the program to find the template to render the files

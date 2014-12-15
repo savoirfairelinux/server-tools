@@ -118,10 +118,10 @@ class prototype(models.Model):
             'Run set_env(api_version) before to generate files.'
 
         file_details = [
-            self.generate_models_details(),
             self.generate_module_openerp_file_details(),
             self.generate_module_init_file_details(),
         ]
+        file_details.extend(self.generate_models_details())
 
         return file_details
 
@@ -150,6 +150,8 @@ class prototype(models.Model):
         return self.generate_file_details(
             '__init__.py',
             '__init__.py.template',
+            # no import models if no work of fields in
+            # the prototype
             models=bool(self.fields)
         )
 
@@ -158,34 +160,62 @@ class prototype(models.Model):
         """Finds the models from the list of fields and generates
         the __init__ file and each models files (one by class).
         """
-        import pprint
+        files = []
+        dependencies = set([dep.id for dep in self.dependencies])
+
         relations = {}
         for field in self.fields:
-            relations.setdefault(field.model, []).append(field)
+            model = field.model_id
+            relations.setdefault(model, []).append(field)
+            dependencies.add(model.id)
 
-        # Getting the name of all dependencies to see if the modules
-        # the fields belongs to are in it already or not.
-        dependency_names = [d.name for d in self.dependencies]
+        # blind update of dependencies.
+        # TODO: doesn't work as need to find the module to import
+        # and it is not necessary the name of the model the fields belongs to.
+        # ie. field.cell_phone is defined in a model inheriting from res.partern
+        # How do we find the module the field was defined in?
+        # self.write({
+        #     'dependencies': [(6, 0, [id_ for id_ in dependencies])]
+        # })
 
+        files.append(self.generate_models_init_details(relations.keys()))
+        for model, fields in relations.iteritems():
+            files.append(self.generate_model_details(model, fields))
 
-        ref = self.env['ir.model.data']
-        for module_name in relations:
-            # if the module is not in the dependencies, it has to be added.
-            # that means find the module object and add it to the list
-            # of dependencies
-            if not module_name in dependency_names:
-                base_name = module_name.split('.')[0]
-                if base_name == 'res':
-                    base_name = 'base'
-                module_name = '.'.join(module_name.split('.')[1:])
+        return files
 
-                print base_name, module_name
-                # module_object = ref.get_object(module_name.split('.'))
-                # print module_object
+    @api.model
+    def generate_models_init_details(self, ir_models):
+        """Wrapper to generate the __init__.py file in models folder."""
+        return self.generate_file_details(
+            'models/__init__.py',
+            'models/__init__.py.template',
+            models=[
+                self.python_friendly_name(ir_model.model)
+                for ir_model in ir_models
+            ]
+        )
 
+    @api.model
+    def generate_model_details(self, model, fields):
+        """Wrapper to generate the python file for the model.
 
+        :param model: ir.model record.
+        :param fields: list of ir.model.fields records.
+        :return: FileDetails instance.
+        """
+        python_friendly_name = self.python_friendly_name(model.model)
+        return self.generate_file_details(
+            'models/{}.py'.format(python_friendly_name),
+            'models/model_name.py.template',
+            name=python_friendly_name,
+            inherit=model.model,
+            fields=fields
+        )
 
-        return ()
+    @staticmethod
+    def python_friendly_name(name):
+        return name.replace('.', '_')
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
@@ -196,5 +226,4 @@ class prototype(models.Model):
         :return: File_details instance
         """
         template = self._env.get_template(template)
-        ret = self.File_details(filename, template.render(kwargs))
-        return ret
+        return self.File_details(filename, template.render(kwargs))
