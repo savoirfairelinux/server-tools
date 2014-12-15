@@ -38,7 +38,7 @@ class test_prototype(common.TransactionCase):
             'author': 't_author',
             'maintainer': 't_maintainer',
             'website': 't_website',
-            'dependencies': [(6, 0, [1,2,3,4])],
+            'dependencies': [(6, 0, [1, 2, 3, 4])],
         })
         self.api_version = '8.0'
 
@@ -49,7 +49,7 @@ class test_prototype(common.TransactionCase):
         )
 
     def test_generate_files(self):
-        """Test it returns a tuple."""
+        """Test generate_files returns a tuple."""
         self.prototype.set_jinja_env(self.api_version)
         details = self.prototype.generate_files()
         self.assertIsInstance(details, list)
@@ -59,7 +59,7 @@ class test_prototype(common.TransactionCase):
             self.assertIsInstance(file_details.filename, basestring)
             self.assertIsInstance(file_details.filecontent, basestring)
 
-    def test_generate_files_raise_TemplateNotFound_if_not_found(self):
+    def test_generate_files_raise_templatenotfound_if_not_found(self):
         self.prototype.set_jinja_env('t_api_version')
         self.assertRaises(
             TemplateNotFound,
@@ -72,4 +72,12 @@ class test_prototype(common.TransactionCase):
         self.prototype.set_jinja_env(self.api_version)
         self.assertIsInstance(
             self.prototype._env, Environment
+        )
+
+    def test_python_friendly_name_return(self):
+        """Test if the returns match the pattern."""
+        name = 'res.partner'
+        self.assertEqual(
+            self.prototype.python_friendly_name(name),
+            name.replace('.', '_')
         )

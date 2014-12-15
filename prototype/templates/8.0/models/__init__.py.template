@@ -19,6 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from . import (
-    {% for model in models %}{{ model }}\r {% endfor %}
-)
+{% for model in models -%}
+from . import {{ model }}
+{% endfor %}

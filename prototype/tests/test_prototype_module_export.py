@@ -1,10 +1,12 @@
-# -*- encoding: utf-8 -*- #
-# OpenERP, Open Source Management Solution
-#    This module copyright (C) 2013 Savoir-faire Linux
-#    (<http://www.savoirfairelinux.com>).
+# -*- encoding: utf-8 -*-
+# #############################################################################
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
+# OpenERP, Open Source Management Solution
+# This module copyright (C) 2010 - 2014 Savoir-faire Linux
+# (<http://www.savoirfairelinux.com>).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
 #    License, or (at your option) any later version.
 #
@@ -16,7 +18,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+##############################################################################
 from openerp.tests import common
 import zipfile
 import StringIO
@@ -65,7 +67,6 @@ class test_prototype_module_export(common.TransactionCase):
         self.assertEqual(exporter.state, 'get')
         self.assertEqual(exporter.name, '{}.zip'.format(self.prototype.name))
 
-
     def test_zip_files_returns_tuple(self):
         """Test the method return of the method that generate the zip file."""
         file_details = (
@@ -80,4 +81,3 @@ class test_prototype_module_export(common.TransactionCase):
         self.assertIsInstance(
             ret.stringIO, StringIO.StringIO
         )
-
