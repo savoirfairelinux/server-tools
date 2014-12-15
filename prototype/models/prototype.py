@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
+# #############################################################################
 #
 #    OpenERP, Open Source Management Solution
 #    This module copyright (C) 2010 - 2014 Savoir-faire Linux
@@ -90,6 +90,7 @@ class prototype(models.Model):
         'prototype_id', 'rule_id', 'Record Rules'
     )
 
+    __data_files = []
     _env = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
@@ -117,11 +118,13 @@ class prototype(models.Model):
         assert self._env is not None, \
             'Run set_env(api_version) before to generate files.'
 
-        file_details = [
-            self.generate_module_openerp_file_details(),
-            self.generate_module_init_file_details(),
-        ]
+        file_details = []
         file_details.extend(self.generate_models_details())
+        file_details.extend(self.generate_views_details())
+        file_details.append(self.generate_module_init_file_details())
+        # must be the last as the other generations might add informations
+        # to put in the __openerp__: additional dependencies, views files, etc.
+        file_details.append(self.generate_module_openerp_file_details())
 
         return file_details
 
@@ -142,6 +145,7 @@ class prototype(models.Model):
             dependencies=[dependency.name for dependency in self.dependencies],
             auto_install=self.auto_install,
             export_date=date.today().year,
+            data_files=self.__data_files,
         )
 
     @api.model
@@ -161,19 +165,21 @@ class prototype(models.Model):
         the __init__ file and each models files (one by class).
         """
         files = []
-        dependencies = set([dep.id for dep in self.dependencies])
+        # TODO: doesn't work as need to find the module to import
+        # and it is not necessary the name of the model the fields
+        # belongs to.
+        # ie. field.cell_phone is defined in a model inheriting from
+        # res.partern.
+        # How do we find the module the field was defined in?
+        # dependencies = set([dep.id for dep in self.dependencies])
 
         relations = {}
         for field in self.fields:
             model = field.model_id
             relations.setdefault(model, []).append(field)
-            dependencies.add(model.id)
+            # dependencies.add(model.id)
 
         # blind update of dependencies.
-        # TODO: doesn't work as need to find the module to import
-        # and it is not necessary the name of the model the fields belongs to.
-        # ie. field.cell_phone is defined in a model inheriting from res.partern
-        # How do we find the module the field was defined in?
         # self.write({
         #     'dependencies': [(6, 0, [id_ for id_ in dependencies])]
         # })
@@ -191,10 +197,33 @@ class prototype(models.Model):
             'models/__init__.py',
             'models/__init__.py.template',
             models=[
-                self.python_friendly_name(ir_model.model)
+                self.friendly_name(ir_model.model)
                 for ir_model in ir_models
             ]
         )
+
+    @api.model
+    def generate_views_details(self):
+        """Wrapper to generate the views files."""
+        relations = {}
+        for view in self.views:
+            relations.setdefault(view.model, []).append(view)
+
+        views_details = []
+        for model, views in relations.iteritems():
+            filepath = 'views/{}_view.xml'.format(
+                self.friendly_name(model)
+            )
+            views_details.append(
+                self.generate_file_details(
+                    filepath,
+                    'views/model_view.xml.template',
+                    views=views
+                )
+            )
+            self.__data_files.append(filepath)
+
+        return views_details
 
     @api.model
     def generate_model_details(self, model, fields):
@@ -204,7 +233,7 @@ class prototype(models.Model):
         :param fields: list of ir.model.fields records.
         :return: FileDetails instance.
         """
-        python_friendly_name = self.python_friendly_name(model.model)
+        python_friendly_name = self.friendly_name(model.model)
         return self.generate_file_details(
             'models/{}.py'.format(python_friendly_name),
             'models/model_name.py.template',
@@ -214,7 +243,7 @@ class prototype(models.Model):
         )
 
     @staticmethod
-    def python_friendly_name(name):
+    def friendly_name(name):
         return name.replace('.', '_')
 
     @api.model
