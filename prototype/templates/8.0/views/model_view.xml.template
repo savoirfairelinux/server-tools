@@ -11,7 +11,7 @@
                 <field name="inherit_id" ref="{{ view.name }}"/>
                 <field name="arch" type="xml">
 {#                    TODO: remove the <?xml version="1.0"?> at the beginning of view.arch #}
-                    {{ view.arch }}
+                    {{ view.arch|replace('<?xml version="1.0"?>', '') }}
                 </field>
             </record>
         {% endfor %}
