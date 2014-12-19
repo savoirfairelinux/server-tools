@@ -45,47 +45,47 @@ class prototype(models.Model):
     version = oe_fields.Char('Version', size=3, default='0.1')
     auto_install = oe_fields.Boolean('Auto Install', default=False)
     # Relations
-    dependencies = oe_fields.Many2many(
+    dependency_ids = oe_fields.Many2many(
         'ir.module.module', 'prototype_module_rel',
         'prototype_id', 'module_id',
         'Dependencies'
     )
-    data = oe_fields.Many2many(
+    data_ids = oe_fields.Many2many(
         'ir.filters',
         'prototype_data_rel',
         'prototype_id', 'filter_id',
         'Data filters',
         help="The records matching the filters will be added as data."
     )
-    demo = oe_fields.Many2many(
+    demo_ids = oe_fields.Many2many(
         'ir.filters',
         'prototype_demo_rel',
         'prototype_id', 'filter_id',
         'Demo filters',
         help="The records matching the filters will be added as demo data."
     )
-    fields = oe_fields.Many2many(
+    field_ids = oe_fields.Many2many(
         'ir.model.fields', 'prototype_fields_rel',
         'prototype_id', 'field_id', 'Fields'
     )
-    menu = oe_fields.Many2many(
+    menu_ids = oe_fields.Many2many(
         'ir.ui.menu', 'prototype_menu_rel',
         'prototype_id', 'menu_id', 'Menu Items'
     )
-    views = oe_fields.Many2many(
+    view_ids = oe_fields.Many2many(
         'ir.ui.view', 'prototype_view_rel',
         'prototype_id', 'view_id', 'Views'
     )
-    groups = oe_fields.Many2many(
+    group_ids = oe_fields.Many2many(
         'res.groups', 'prototype_groups_rel',
         'prototype_id', 'group_id', 'Groups'
     )
-    rights = oe_fields.Many2many(
+    right_ids = oe_fields.Many2many(
         'ir.model.access', 'prototype_rights_rel',
         'prototype_id', 'right_id',
         'Access Rights'
     )
-    rules = oe_fields.Many2many(
+    rule_ids = oe_fields.Many2many(
         'ir.rule', 'prototype_rule_rel',
         'prototype_id', 'rule_id', 'Record Rules'
     )
@@ -122,7 +122,7 @@ class prototype(models.Model):
         file_details.extend(self.generate_models_details())
         file_details.extend(self.generate_views_details())
         file_details.append(self.generate_module_init_file_details())
-        # must be the last as the other generations might add informations
+        # must be the last as the other generations might add information
         # to put in the __openerp__: additional dependencies, views files, etc.
         file_details.append(self.generate_module_openerp_file_details())
 
@@ -142,7 +142,9 @@ class prototype(models.Model):
             category=self.category_id.name,
             summary=self.summary,
             description=self.description,
-            dependencies=[dependency.name for dependency in self.dependencies],
+            dependencies=[
+                dependency.name for dependency in self.dependency_ids
+            ],
             auto_install=self.auto_install,
             export_date=date.today().year,
             data_files=self.__data_files,
@@ -156,7 +158,7 @@ class prototype(models.Model):
             '__init__.py.template',
             # no import models if no work of fields in
             # the prototype
-            models=bool(self.fields)
+            models=bool(self.field_ids)
         )
 
     @api.model
@@ -174,7 +176,7 @@ class prototype(models.Model):
         # dependencies = set([dep.id for dep in self.dependencies])
 
         relations = {}
-        for field in self.fields:
+        for field in self.field_ids:
             model = field.model_id
             relations.setdefault(model, []).append(field)
             # dependencies.add(model.id)
@@ -206,7 +208,7 @@ class prototype(models.Model):
     def generate_views_details(self):
         """Wrapper to generate the views files."""
         relations = {}
-        for view in self.views:
+        for view in self.view_ids:
             relations.setdefault(view.model, []).append(view)
 
         views_details = []
@@ -226,11 +228,11 @@ class prototype(models.Model):
         return views_details
 
     @api.model
-    def generate_model_details(self, model, fields):
+    def generate_model_details(self, model, field_ids):
         """Wrapper to generate the python file for the model.
 
         :param model: ir.model record.
-        :param fields: list of ir.model.fields records.
+        :param field_ids: list of ir.model.fields records.
         :return: FileDetails instance.
         """
         python_friendly_name = self.friendly_name(model.model)
@@ -239,7 +241,7 @@ class prototype(models.Model):
             'models/model_name.py.template',
             name=python_friendly_name,
             inherit=model.model,
-            fields=fields
+            fields=field_ids
         )
 
     @staticmethod
