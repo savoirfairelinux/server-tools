@@ -15,6 +15,16 @@
                 </field>
             </record>
         {% endfor %}
+        {% for menu in menus %}
+            <menuitem
+                    name="{{ menu.name }}"
+                    id="{{ menu.name|remplace('.', '_') }}"
+                    {% if menu.parent %}
+                    parent="{{ menu.parent.name }}"
+                    {% endif %}
+                    sequence="{{ menu.sequence }}"
+                    />
+        {% endfor %}
 
     </data>
 </openerp>
