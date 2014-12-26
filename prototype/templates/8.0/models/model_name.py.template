@@ -1,7 +1,7 @@
 {% extends "header.template" %}
 {% block body %}
 from openerp import models, fields
-from openerp.tool.translate import _
+from openerp.tools.translate import _
 
 
 class {{ name }}(models.Model):
@@ -10,12 +10,13 @@ class {{ name }}(models.Model):
     _description = "{{ description }}"
     {% endif %}
 
-    {# comment #}
-    # Verifier les champs
-    {# endcomment #}
     {% for field in fields -%}
-    {{ field.name }} = fields.{{ field.ttype }}(
+    {{ field.name }} = fields.{{ field.ttype|capitalize }}(
         string=_("{{ field.field_description }}"),
+        required={{ field.required }},
+        translate={{ field.translate }},
+        readonly={{ field.readonly }},
+        help=_('{{ field.notes }}'),
     )
     {% endfor %}
 
