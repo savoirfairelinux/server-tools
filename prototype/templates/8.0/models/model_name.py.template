@@ -6,9 +6,7 @@ from openerp.tools.translate import _
 
 class {{ name }}(models.Model):
     _inherit = "{{ inherit }}"
-    {% if description %}
-    _description = "{{ description }}"
-    {% endif %}
+    {% if description %}_description = "{{ description }}"{% endif %}
 
     {% for field in fields -%}
     {{ field.name }} = fields.{{ field.ttype|capitalize }}(
