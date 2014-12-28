@@ -27,7 +27,7 @@ To use this module, you need to:
  * create your own groups with access rights and record rules
  * add your own access rights and record rules to an existing group
 
-Once you have customize you rinstance properly, you can go to Settings > Modules > Prototype
+Once you have customized your instance properly, you can go to Settings > Modules > Prototype
 and create a new prototype:
 
  * fill in the information of your module (enter the name, the description, the logo, etc.)
