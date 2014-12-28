@@ -40,12 +40,12 @@ You will get a zip file containing your module ready to be installed and complia
 Known issues / Roadmap
 ======================
 
- * Include controllers.py and templates.xml from scaffold (`Github
-<https://github.com/OCA/server-tools/issues/104>`_).
+ * `#104`_ - Include controllers.py and templates.xml from scaffold.
  * Attach images to the prototype and export them to be used in the 'images' module manifest.
  * Add a Report tab to select and export reports
  * Add a Workflow tab to select and export workflows, nodes, transitions, actions
 
+.. _#104: https://github.com/OCA/server-tools/issues/104
 
 Please report any idea or issue on https://github.com/OCA/server-tools/issues.
 
