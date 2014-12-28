@@ -1,7 +1,9 @@
 Module Prototype
 ================
 
-This module allows the administrator to prototype new features and export them as module. Functional people can prepare the job for a developer who is left with the logic to implement in addition to everything the prototype does not export yet.
+This module allows the administrator to prototype new features and export them as module. 
+Functional people can prepare the job for a developer who is left with the logic to implement 
+in addition to everything the prototype does not export yet.
 
 Installation
 ============
@@ -25,7 +27,8 @@ To use this module, you need to:
  * create your own groups with access rights and record rules
  * add your own access rights and record rules to an existing group
 
-Once you have customize you rinstance properly, you can go to Settings > Modules > Prototype and create a new prototype:
+Once you have customize you rinstance properly, you can go to Settings > Modules > Prototype
+and create a new prototype:
 
  * fill in the information of your module (enter the name, the description, the logo, etc.)
  * in the Depencencies tab, select all the other modules that yours will be depending on
@@ -35,7 +38,9 @@ Once you have customize you rinstance properly, you can go to Settings > Modules
  * in the Security tab, select your groups, access rights and record rules
  * save and click on export
 
-You will get a zip file containing your module ready to be installed and compliant with the conventions of the OCA. You can then provide the module to a developer who have to implement things like default values or onchange methods.
+You will get a zip file containing your module ready to be installed and compliant with the 
+conventions of the OCA. You can then provide the module to a developer who have to implement 
+things like default values or onchange methods.
 
 Known issues / Roadmap
 ======================
@@ -47,7 +52,7 @@ Known issues / Roadmap
 
 .. _#104: https://github.com/OCA/server-tools/issues/104
 
-Please report any idea or issue on https://github.com/OCA/server-tools/issues.
+Please report any idea or issue to https://github.com/OCA/server-tools/issues.
 
 Credits
 =======
