@@ -20,77 +20,104 @@
 #
 ##############################################################################
 import os
+import re
+import base64
 from datetime import date
+YEAR = date.today().year
+
 from collections import namedtuple
 from jinja2 import Environment, FileSystemLoader
-from openerp import models, api
-
-# to avoid conflicts with a field of the new model.
-from openerp import fields as oe_fields
+from openerp import models, api, fields
 
 
-class prototype(models.Model):
+class Prototype(models.Model):
     _name = "prototype"
     _description = "Prototype"
 
-    name = oe_fields.Char('Technical Name', required=True)
-    category_id = oe_fields.Many2one('ir.module.category', 'Category')
-    human_name = oe_fields.Char('Module Name', required=True)
-    summary = oe_fields.Char('Summary', required=True)
-    description = oe_fields.Text('Description', required=True)
-    author = oe_fields.Char('Author', required=True)
-    maintainer = oe_fields.Char('Maintainer')
-    website = oe_fields.Char('Website')
-    icon_image = oe_fields.Binary('Icon')
-    version = oe_fields.Char('Version', size=3, default='0.1')
-    auto_install = oe_fields.Boolean('Auto Install', default=False)
+    licence = fields.Char(
+        'Licence',
+        default='AGPL-3',
+    )
+    name = fields.Char(
+        'Technical Name', required=True,
+        help=('The technical name will be used to define the name of '
+              'the exported module, the name of the model.')
+    )
+    category_id = fields.Many2one('ir.module.category', 'Category')
+    human_name = fields.Char(
+        'Module Name', required=True,
+        help=('The Module Name will be used as the displayed name of the '
+              'exported module.')
+    )
+    summary = fields.Char('Summary', required=True)
+    description = fields.Text('Description', required=True)
+    author = fields.Char('Author', required=True)
+    maintainer = fields.Char('Maintainer')
+    website = fields.Char('Website')
+    icon_image = fields.Binary(
+        'Icon',
+        help=('The icon set up here will be used as the icon '
+              'for the exported module also')
+    )
+    version = fields.Char('Version', size=3, default='0.1')
+    auto_install = fields.Boolean(
+        'Auto Install',
+        default=False,
+        help='Check if the module should be install by default.'
+    )
+    application = fields.Boolean(
+        'Application',
+        default=False,
+        help='Check if the module is an Odoo application.'
+    )
     # Relations
-    dependency_ids = oe_fields.Many2many(
+    dependency_ids = fields.Many2many(
         'ir.module.module', 'prototype_module_rel',
         'prototype_id', 'module_id',
         'Dependencies'
     )
-    data_ids = oe_fields.Many2many(
+    data_ids = fields.Many2many(
         'ir.filters',
         'prototype_data_rel',
         'prototype_id', 'filter_id',
         'Data filters',
         help="The records matching the filters will be added as data."
     )
-    demo_ids = oe_fields.Many2many(
+    demo_ids = fields.Many2many(
         'ir.filters',
         'prototype_demo_rel',
         'prototype_id', 'filter_id',
         'Demo filters',
         help="The records matching the filters will be added as demo data."
     )
-    field_ids = oe_fields.Many2many(
+    field_ids = fields.Many2many(
         'ir.model.fields', 'prototype_fields_rel',
         'prototype_id', 'field_id', 'Fields'
     )
-    menu_ids = oe_fields.Many2many(
+    menu_ids = fields.Many2many(
         'ir.ui.menu', 'prototype_menu_rel',
         'prototype_id', 'menu_id', 'Menu Items'
     )
-    view_ids = oe_fields.Many2many(
+    view_ids = fields.Many2many(
         'ir.ui.view', 'prototype_view_rel',
         'prototype_id', 'view_id', 'Views'
     )
-    group_ids = oe_fields.Many2many(
+    group_ids = fields.Many2many(
         'res.groups', 'prototype_groups_rel',
         'prototype_id', 'group_id', 'Groups'
     )
-    right_ids = oe_fields.Many2many(
+    right_ids = fields.Many2many(
         'ir.model.access', 'prototype_rights_rel',
         'prototype_id', 'right_id',
         'Access Rights'
     )
-    rule_ids = oe_fields.Many2many(
+    rule_ids = fields.Many2many(
         'ir.rule', 'prototype_rule_rel',
         'prototype_id', 'rule_id', 'Record Rules'
     )
 
     __data_files = []
+    __field_descriptions = {}
     _env = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
@@ -110,6 +137,28 @@ class prototype(models.Model):
             )
         return self._env
 
+    def set_field_descriptions(self):
+        """Mock the list of fields into dictionary.
+        It allows us to add or change attributes of the fields.
+
+        :return: None
+        """
+        for field in self.field_ids:
+            field_description = {}
+            # This will mock a field record.
+            # the mock will allow us to add data or modify the data
+            # of the field (like for the name) with keeping all the
+            # attributes of the record.
+            field_description.update({
+                attr_name: getattr(field, attr_name)
+                for attr_name in dir(field)
+                if not attr_name[0] == '_'
+            })
+            # custom fields start with the prefix x_.
+            # it has to be removed.
+            field_description['name'] = re.sub(r'^x_', '', field.name)
+            self.__field_descriptions[field] = field_description
+
     @api.model
     def generate_files(self):
         """ Generates the files from the details of the prototype.
@@ -118,15 +167,25 @@ class prototype(models.Model):
         assert self._env is not None, \
             'Run set_env(api_version) before to generate files.'
 
+        self.set_field_descriptions()
         file_details = []
         file_details.extend(self.generate_models_details())
         file_details.extend(self.generate_views_details())
+        file_details.extend(self.generate_menus_details())
         file_details.append(self.generate_module_init_file_details())
         # must be the last as the other generations might add information
         # to put in the __openerp__: additional dependencies, views files, etc.
         file_details.append(self.generate_module_openerp_file_details())
+        file_details.append(self.save_icon())
 
         return file_details
+
+    @api.model
+    def save_icon(self):
+        return self.File_details(
+            os.path.join('static', 'description', 'icon.jpg'),
+            base64.b64decode(self.icon_image)
+        )
 
     @api.model
     def generate_module_openerp_file_details(self):
@@ -134,19 +193,7 @@ class prototype(models.Model):
         return self.generate_file_details(
             '__openerp__.py',
             '__openerp__.py.template',
-            name=self.name,
-            version=self.version,
-            author=self.author,
-            maintainer=self.maintainer,
-            website=self.website,
-            category=self.category_id.name,
-            summary=self.summary,
-            description=self.description,
-            dependencies=[
-                dependency.name for dependency in self.dependency_ids
-            ],
-            auto_install=self.auto_install,
-            export_date=date.today().year,
+            prototype=self,
             data_files=self.__data_files,
         )
 
@@ -171,13 +218,13 @@ class prototype(models.Model):
         # and it is not necessary the name of the model the fields
         # belongs to.
         # ie. field.cell_phone is defined in a model inheriting from
-        # res.partern.
+        # res.partner.
         # How do we find the module the field was defined in?
         # dependencies = set([dep.id for dep in self.dependencies])
 
         relations = {}
-        for field in self.field_ids:
-            model = field.model_id
+        for field in self.__field_descriptions.itervalues():
+            model = field.get('model_id')
             relations.setdefault(model, []).append(field)
             # dependencies.add(model.id)
 
@@ -219,7 +266,7 @@ class prototype(models.Model):
             views_details.append(
                 self.generate_file_details(
                     filepath,
-                    'views/model_view.xml.template',
+                    'views/model_views.xml.template',
                     views=views
                 )
             )
@@ -228,11 +275,34 @@ class prototype(models.Model):
         return views_details
 
     @api.model
-    def generate_model_details(self, model, field_ids):
+    def generate_menus_details(self):
+        """Wrapper to generate the menus files."""
+        relations = {}
+        for menu in self.menu_ids:
+            relations.setdefault(menu.action.res_model, []).append(menu)
+
+        menus_details = []
+        for model_name, menus in relations.iteritems():
+            filepath = 'views/{}_menus.xml'.format(
+                self.friendly_name(model_name)
+            )
+            menus_details.append(
+                self.generate_file_details(
+                    filepath,
+                    'views/model_menus.xml.template',
+                    menus=menus,
+                )
+            )
+            self.__data_files.append(filepath)
+
+        return menus_details
+
+    @api.model
+    def generate_model_details(self, model, field_descriptions):
         """Wrapper to generate the python file for the model.
 
         :param model: ir.model record.
-        :param field_ids: list of ir.model.fields records.
+        :param field_descriptions: list of ir.model.fields records.
         :return: FileDetails instance.
         """
         python_friendly_name = self.friendly_name(model.model)
@@ -241,7 +311,7 @@ class prototype(models.Model):
             'models/model_name.py.template',
             name=python_friendly_name,
             inherit=model.model,
-            fields=field_ids
+            fields=field_descriptions,
         )
 
     @staticmethod
@@ -257,4 +327,13 @@ class prototype(models.Model):
         :return: File_details instance
         """
         template = self._env.get_template(template)
+        # keywords used in several templates.
+        kwargs.update(
+            {
+                'export_year': YEAR,
+                'author': self.author,
+                'website': self.website,
+                'cr': self._cr,
+            }
+        )
         return self.File_details(filename, template.render(kwargs))
