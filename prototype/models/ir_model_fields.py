@@ -25,4 +25,5 @@ from openerp import fields, models
 class ir_model_fields(models.Model):
     _inherit = "ir.model.fields"
 
-    notes = fields.Text('Notes')
+    notes = fields.Text('Notes to developers.')
+    helper = fields.Text('Helper')
