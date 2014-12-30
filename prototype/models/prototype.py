@@ -179,7 +179,6 @@ class Prototype(models.Model):
         if self.icon_image:
             file_details.append(self.save_icon())
 
-        print self.__data_files
         return file_details
 
     @api.model
@@ -236,8 +235,8 @@ class Prototype(models.Model):
         # })
 
         files.append(self.generate_models_init_details(relations.keys()))
-        for model, fields in relations.iteritems():
-            files.append(self.generate_model_details(model, fields))
+        for model, custom_fields in relations.iteritems():
+            files.append(self.generate_model_details(model, custom_fields))
 
         return files
 
