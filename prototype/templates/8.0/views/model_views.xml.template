@@ -15,7 +15,7 @@
                     Be careful, custom field have a x_ prefix that has to be
                     removed
                     #}
-                    {{ view.arch|replace('<?xml version="1.0"?>', '')|replace('"x_', '"') }}
+                    {{ view.arch|replace('"', '\'')|replace('<?xml version="1.0"?>', '')|replace('"x_', '"') }}
                 </field>
             </record>
         {% endfor %}
