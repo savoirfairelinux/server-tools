@@ -176,8 +176,10 @@ class Prototype(models.Model):
         # must be the last as the other generations might add information
         # to put in the __openerp__: additional dependencies, views files, etc.
         file_details.append(self.generate_module_openerp_file_details())
-        file_details.append(self.save_icon())
+        if self.icon_image:
+            file_details.append(self.save_icon())
 
+        print self.__data_files
         return file_details
 
     @api.model
