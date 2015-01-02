@@ -2,9 +2,9 @@
 <openerp>
     <data>
 
-        <record id="view_prototype_tree" model="ir.ui.view">
-            <field name="name">prototype.tree</field>
-            <field name="model">prototype</field>
+        <record id="module_prototyper_base_tree_view" model="ir.ui.view">
+            <field name="name">Base tree View for module prototypes</field>
+            <field name="model">module_prototyper</field>
             <field name="arch" type="xml">
                 <tree string="Prototype">
                     <field name="human_name"/>
@@ -14,9 +14,9 @@
             </field>
         </record>
 
-        <record id="view_prototype_form" model="ir.ui.view">
-            <field name="name">prototype.form</field>
-            <field name="model">prototype</field>
+        <record id="module_prototyper_base_form_view" model="ir.ui.view">
+            <field name="name">Base form view for module prototypes</field>
+            <field name="model">module_prototyper</field>
             <field name="arch" type="xml">
                 <form string="Module">
                     <link rel="stylesheet"
@@ -67,10 +67,10 @@
                                 <field name="field_ids"/>
                             </page>
                             <page string="Interface">
-                                <label for="menu_ids"/>
-                                <field name="menu_ids"/>
                                 <label for="view_ids"/>
                                 <field name="view_ids"/>
+                                <label for="menu_ids"/>
+                                <field name="menu_ids"/>
                             </page>
                             <!--Not implemented yet-->
                             <!--<page string="Security">-->
@@ -87,16 +87,16 @@
             </field>
         </record>
 
-        <record id="open_prototype_list" model="ir.actions.act_window">
-            <field name="name">Prototype</field>
-            <field name="res_model">prototype</field>
+        <record id="open_module_prototyper_list" model="ir.actions.act_window">
+            <field name="name">Prototypes</field>
+            <field name="res_model">module_prototyper</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_prototype_tree"/>
+            <field name="view_id" ref="module_prototyper_base_tree_view"/>
         </record>
 
-        <menuitem id="menu_open_prototype"
-                  action="open_prototype_list"
+        <menuitem id="menu_open_module_prototyper"
+                  action="open_module_prototyper_list"
                   parent="base.menu_management"
                   sequence="30"
                   groups="base.group_system"/>
