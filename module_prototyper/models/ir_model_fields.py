@@ -23,6 +23,7 @@ from openerp import fields, models
 
 
 class ir_model_fields(models.Model):
+    """Addition of text fields to fields."""
     _inherit = "ir.model.fields"
 
     notes = fields.Text('Notes to developers.')
