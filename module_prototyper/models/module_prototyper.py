@@ -31,9 +31,17 @@ from openerp import models, api, fields
 
 
 class ModulePrototyper(models.Model):
+    """Module Prototyper gathers different information from all over the
+    database to build a prototype of module.
+    We are calling it a prototype as it will most likely need to be reviewed
+    by a developer to fix glitch that would sneak it during the generation of
+    files but also to add not supported features.
+    """
     _name = "module_prototyper"
     _description = "Module Prototyper"
 
+    # In prevision of odoo might support other licences than AGPL in
+    # (near) future.
     licence = fields.Char(
         'Licence',
         default='AGPL-3',
@@ -183,6 +191,16 @@ class ModulePrototyper(models.Model):
 
     @api.model
     def save_icon(self):
+        """Save the icon of the prototype as a image.
+        The image is used afterwards as the icon of the exported module.
+
+        :return: FileDetails instance
+        """
+        # TODO: The image is not always a jpg.
+        # 2 ways to do it:
+            # * find a way to detect image type from the data
+            # * add document as a dependency.
+        # The second options seems to be better, as Document is a base module.
         return self.File_details(
             os.path.join('static', 'description', 'icon.jpg'),
             base64.b64decode(self.icon_image)

@@ -95,6 +95,8 @@
             <field name="view_id" ref="module_prototyper_base_tree_view"/>
         </record>
 
+        <!--Here a menu is created to help user to have all what he needs-->
+        <!--under his mouse with ease-->
         <menuitem id="menu_module_prototyper"
                   name="Module Prototypes"
                   parent="base.menu_administration"
