@@ -95,11 +95,35 @@
             <field name="view_id" ref="module_prototyper_base_tree_view"/>
         </record>
 
+        <menuitem id="menu_module_prototyper"
+                  name="Module Prototypes"
+                  parent="base.menu_administration"
+                  sequence="1"/>
+
         <menuitem id="menu_open_module_prototyper"
                   action="open_module_prototyper_list"
-                  parent="base.menu_management"
-                  sequence="30"
+                  parent="menu_module_prototyper"
+                  sequence="1"
                   groups="base.group_system"/>
+
+        <menuitem action="base.action_ui_view"
+                  id="menu_action_ui_view"
+                  parent="menu_module_prototyper"
+                  sequence="2"
+                  groups="base.group_system"/>
+
+        <menuitem action="base.grant_menu_access"
+                  id="menu_grant_menu_access"
+                  parent="menu_module_prototyper"
+                  sequence="3"
+                  groups="base.group_system"/>
+
+        <menuitem action="base.action_model_fields"
+                  id="ir_model_model_fields"
+                  parent="menu_module_prototyper"
+                  sequence="4"
+                  groups="base.group_system"/>
+
 
     </data>
 </openerp>
