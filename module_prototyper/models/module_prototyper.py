@@ -30,9 +30,9 @@ from jinja2 import Environment, FileSystemLoader
 from openerp import models, api, fields
 
 
-class Prototype(models.Model):
-    _name = "prototype"
-    _description = "Prototype"
+class ModulePrototyper(models.Model):
+    _name = "module_prototyper"
+    _description = "Module Prototyper"
 
     licence = fields.Char(
         'Licence',
@@ -72,48 +72,48 @@ class Prototype(models.Model):
     )
     # Relations
     dependency_ids = fields.Many2many(
-        'ir.module.module', 'prototype_module_rel',
-        'prototype_id', 'module_id',
+        'ir.module.module', 'module_prototyper_module_rel',
+        'module_prototyper_id', 'module_id',
         'Dependencies'
     )
     data_ids = fields.Many2many(
         'ir.filters',
         'prototype_data_rel',
-        'prototype_id', 'filter_id',
+        'module_prototyper_id', 'filter_id',
         'Data filters',
         help="The records matching the filters will be added as data."
     )
     demo_ids = fields.Many2many(
         'ir.filters',
         'prototype_demo_rel',
-        'prototype_id', 'filter_id',
+        'module_prototyper_id', 'filter_id',
         'Demo filters',
         help="The records matching the filters will be added as demo data."
     )
     field_ids = fields.Many2many(
         'ir.model.fields', 'prototype_fields_rel',
-        'prototype_id', 'field_id', 'Fields'
+        'module_prototyper_id', 'field_id', 'Fields'
     )
     menu_ids = fields.Many2many(
         'ir.ui.menu', 'prototype_menu_rel',
-        'prototype_id', 'menu_id', 'Menu Items'
+        'module_prototyper_id', 'menu_id', 'Menu Items'
     )
     view_ids = fields.Many2many(
         'ir.ui.view', 'prototype_view_rel',
-        'prototype_id', 'view_id', 'Views'
+        'module_prototyper_id', 'view_id', 'Views'
     )
     group_ids = fields.Many2many(
         'res.groups', 'prototype_groups_rel',
-        'prototype_id', 'group_id', 'Groups'
+        'module_prototyper_id', 'group_id', 'Groups'
     )
     right_ids = fields.Many2many(
         'ir.model.access', 'prototype_rights_rel',
-        'prototype_id', 'right_id',
+        'module_prototyper_id', 'right_id',
         'Access Rights'
     )
     rule_ids = fields.Many2many(
         'ir.rule', 'prototype_rule_rel',
-        'prototype_id', 'rule_id', 'Record Rules'
+        'module_prototyper_id', 'rule_id', 'Record Rules'
     )
 
     __data_files = []
