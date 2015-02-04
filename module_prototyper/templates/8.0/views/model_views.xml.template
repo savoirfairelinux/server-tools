@@ -3,8 +3,8 @@
     <data>
         <!-- TODO: put here a reminder on what to do at the first edition -->
 
-        {% for view in views %}
-            <record id="{{ view.name|replace('.', '_')}}_view" model="ir.ui.model">
+        {% for view in views -%}
+            <record id="{{ view.name|replace('.', '_')}}_view" model="ir.ui.view">
                 <field name="name">{{ view.name }}.view</field>
                 <field name="model">{{ view.model }}</field>
                 <field name="view_type">{{ view.type }}</field>
