@@ -22,7 +22,7 @@
 
 {
     'name': 'Module Prototyper',
-    'version': '0.2',
+    'version': '0.3',
     'author': 'Savoir-faire Linux',
     'maintainer': 'Savoir-faire Linux',
     'website': 'http://www.savoirfairelinux.com',
