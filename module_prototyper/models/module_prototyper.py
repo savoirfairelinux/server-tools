@@ -40,10 +40,15 @@ class ModulePrototyper(models.Model):
     _name = "module_prototyper"
     _description = "Module Prototyper"
 
-    # In prevision of odoo might support other licences than AGPL in
-    # (near) future.
-    licence = fields.Char(
-        'Licence',
+    license = fields.Selection(
+        [('GPL-2', 'GPL Version 2'),
+        ('GPL-2 or any later version', 'GPL-2 or later version'),
+        ('GPL-3', 'GPL Version 3'),
+        ('GPL-3 or any later version', 'GPL-3 or later version'),
+        ('AGPL-3', 'Affero GPL-3'),
+        ('Other OSI approved licence', 'Other OSI Approved Licence'),
+        ('Other proprietary', 'Other Proprietary')],
+        string='License',
         default='AGPL-3',
     )
     name = fields.Char(
@@ -62,7 +67,65 @@ class ModulePrototyper(models.Model):
     )
     description = fields.Text('Description', required=True, 
         help=('Enter the description of your module, what it does, how to'
-              'install, configure and use it, the roadmap or known issues')
+              'install, configure and use it, the roadmap or known issues.'
+              'The description will be exported in README.rst'),
+        default="""
+Module name
+===========
+
+This module was written to extend the functionality of ... to support ... and allow you to ...
+
+Installation
+============
+
+To install this module, you need to:
+
+ * do this ...
+
+Configuration
+=============
+
+To configure this module, you need to:
+
+ * go to ...
+
+Usage
+=====
+
+To use this module, you need to:
+
+ * go to ...
+
+For further information, please visit:
+
+ * https://www.odoo.com/forum/help-1
+
+Known issues / Roadmap
+======================
+
+ * ...
+
+Credits
+=======
+
+Contributors
+------------
+
+* Firsname Lastname <email.address@example.org>
+
+Maintainer
+----------
+
+.. image:: http://odoo-community.org/logo.png
+   :alt: Odoo Community Association
+   :target: http://odoo-community.org
+
+This module is maintained by the OCA.
+
+OCA, or the Odoo Community Association, is a nonprofit organization whose mission is to support the collaborative development of Odoo features and promote its widespread use.
+
+To contribute to this module, please visit http://odoo-community.org.
+        """
     )
     author = fields.Char('Author', required=True,
         help=('Enter your name')
