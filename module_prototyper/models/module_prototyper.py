@@ -19,16 +19,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+import base64
+import lxml.etree
 import os
 import re
-import base64
-from datetime import date
+import textwrap
 
 from collections import namedtuple
+from datetime import date
+
 from jinja2 import Environment, FileSystemLoader
+
 from openerp import models, api, fields
+
 from .default_description import get_default_description
-YEAR = date.today().year
 
 
 class ModulePrototyper(models.Model):
@@ -178,6 +182,8 @@ class ModulePrototyper(models.Model):
         """
         if self._env is None:
             self._env = Environment(
+                lstrip_blocks=True,
+                trim_blocks=True,
                 loader=FileSystemLoader(
                     os.path.join(self.template_path, api_version)
                 )
@@ -372,9 +378,26 @@ class ModulePrototyper(models.Model):
             fields=field_descriptions,
         )
 
-    @staticmethod
-    def friendly_name(name):
+    @classmethod
+    def unprefix(cls, name):
+        return re.sub('^x_', '', name)
+
+    @classmethod
+    def friendly_name(cls, name):
         return name.replace('.', '_')
+
+    @classmethod
+    def fixup_arch(cls, archstr):
+        doc = lxml.etree.fromstring(archstr)
+        for elem in doc.xpath("//*[@name]"):
+            elem.attrib["name"] = cls.unprefix(elem.attrib["name"])
+
+        for elem in doc.xpath("//field"):
+            # Make fields self-closed by removing useless whitespace
+            if elem.text and not elem.text.strip():
+                elem.text = None
+
+        return lxml.etree.tostring(doc)
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
@@ -388,10 +411,40 @@ class ModulePrototyper(models.Model):
         # keywords used in several templates.
         kwargs.update(
             {
-                'export_year': YEAR,
+                'export_year': date.today().year,
                 'author': self.author,
                 'website': self.website,
                 'cr': self._cr,
+                # Utility functions
+                'fixup_arch': self.fixup_arch,
+                'unprefix': self.unprefix,
+                'wrap': wrap,
+
             }
         )
         return self.File_details(filename, template.render(kwargs))
+
+
+# Utility functions for rendering templates
+def wrap(text, **kwargs):
+    """ Wrap some text for inclusion in a template, returning lines
+
+    keyword arguments available, from textwrap.TextWrapper:
+
+        width=70
+        initial_indent=''
+        subsequent_indent=''
+        expand_tabs=True
+        replace_whitespace=True
+        fix_sentence_endings=False
+        break_long_words=True
+        drop_whitespace=True
+        break_on_hyphens=True
+    """
+    if not text:
+        return []
+    wrapper = textwrap.TextWrapper(**kwargs)
+    # We join the lines and split them again to offer a stable api for
+    # the jinja2 templates, regardless of replace_whitspace=True|False
+    text = "\n".join(wrapper.wrap(text))
+    return text.splitlines()
