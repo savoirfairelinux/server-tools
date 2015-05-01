@@ -1,5 +1,6 @@
 {% extends "header.template" %}
 {% block body %}
+
 from openerp import models, fields
 from openerp.tools.translate import _
 
@@ -11,9 +12,9 @@ class {{ unprefix(name) }}(models.Model):
     {% endif %}
 
     {% for field in fields %}
-    {% for line in wrap(field.notes, replace_whitespace=False) %}
+        {% for line in wrap(field.notes, replace_whitespace=False) %}
     # {{line}}
-    {% endfor %}
+        {% endfor %}
     {{ unprefix(field.name) }} = fields.{{ field.ttype|capitalize }}(
         string=_("{{ field.field_description }}"),
         required={{ field.required }},
@@ -25,6 +26,6 @@ class {{ unprefix(name) }}(models.Model):
         {% if field.helper %}
         help=_("{{ field.helper }}"),
         {% endif %}
-    ){% endfor %}
-
+    )
+    {% endfor %}
 {% endblock %}

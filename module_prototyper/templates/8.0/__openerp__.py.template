@@ -1,5 +1,6 @@
 {% extends "header.template" %}
 {% block body %}
+
 {
     'name': '{{ prototype.human_name }}',
     'version': '{{ prototype.version }}',
