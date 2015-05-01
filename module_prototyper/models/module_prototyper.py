@@ -374,7 +374,7 @@ class ModulePrototyper(models.Model):
             'models/{}.py'.format(python_friendly_name),
             'models/model_name.py.template',
             name=python_friendly_name,
-            inherit=model.model,
+            model=model,
             fields=field_descriptions,
         )
 
