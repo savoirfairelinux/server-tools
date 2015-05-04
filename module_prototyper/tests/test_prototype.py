@@ -82,7 +82,7 @@ class TestModulePrototyper(common.TransactionCase):
                         res,
                         "Python file {0} has pep8 errors:\n"
                         "{1}\n{2}".format(name, checker.report.messages,
-                                         repr(contents))
+                                          repr(contents))
                     )
 
             elif name.endswith(".xml"):
