@@ -343,7 +343,11 @@ class ModulePrototyper(models.Model):
         """Wrapper to generate the menus files."""
         relations = {}
         for menu in self.menu_ids:
-            relations.setdefault(menu.action.res_model, []).append(menu)
+            if menu.action and menu.action.res_model:
+                model = menu.action.res_model
+            else:
+                model = 'ir_ui'
+            relations.setdefault(model, []).append(menu)
 
         menus_details = []
         for model_name, menus in relations.iteritems():
@@ -380,6 +384,8 @@ class ModulePrototyper(models.Model):
 
     @classmethod
     def unprefix(cls, name):
+        if not name:
+            return name
         return re.sub('^x_', '', name)
 
     @classmethod
