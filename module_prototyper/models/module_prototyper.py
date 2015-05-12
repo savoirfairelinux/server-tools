@@ -33,6 +33,7 @@ from jinja2 import Environment, FileSystemLoader
 from openerp import models, api, fields
 
 from .default_description import get_default_description
+from . import licenses
 
 
 class ModulePrototyper(models.Model):
@@ -47,16 +48,17 @@ class ModulePrototyper(models.Model):
 
     license = fields.Selection(
         [
-             ('GPL-3', 'GPL Version 3'),
-             ('GPL-3 or any later version', 'GPL-3 or later version'),
-             ('LGPL-3', 'LGPL-3'),
-             ('LGPL-3 or any later version', 'LGPL-3 or later version'),
-             ('AGPL-3', 'Affero GPL-3'),
-             ('Other OSI approved licence', 'Other OSI Approved Licence'),
-             ('Other proprietary', 'Other Proprietary')
+            (licenses.GPL3, 'GPL Version 3'),
+            (licenses.GPL3_L, 'GPL-3 or later version'),
+            (licenses.LGPL3, 'LGPL-3'),
+            (licenses.LGPL3_L, 'LGPL-3 or later version'),
+            (licenses.AGPL3, 'Affero GPL-3'),
+            (licenses.AGPL3_L, 'Affero GPL-3 or later version'),
+            (licenses.OSI, 'Other OSI Approved Licence'),
+            ('Other proprietary', 'Other Proprietary')
         ],
         string='License',
-        default='AGPL-3',
+        default=licenses.AGPL3_L,
     )
     name = fields.Char(
         'Technical Name', required=True,
@@ -422,6 +424,7 @@ class ModulePrototyper(models.Model):
                 'export_year': date.today().year,
                 'author': self.author,
                 'website': self.website,
+                'license_text': licenses.get_license_text(self.license),
                 'cr': self._cr,
                 # Utility functions
                 'fixup_arch': self.fixup_arch,
