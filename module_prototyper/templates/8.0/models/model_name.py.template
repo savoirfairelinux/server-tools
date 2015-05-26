@@ -26,7 +26,7 @@ class {{ unprefix(name) }}(models.Model):
     {{ unprefix(field.name) }} = fields.{{ field.ttype|capitalize }}(
         string=_("{{ field.field_description }}"),
         {% if field.selection %}
-        selection={{ selection }},
+        selection={{ field.selection }},
         {% endif %}
         {% if field.relation %}
         comodel_name="{{ field.relation }}",
