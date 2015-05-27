@@ -348,13 +348,14 @@ class ModulePrototyper(models.Model):
         relations = {}
         for menu in self.menu_ids:
             if menu.action and menu.action.res_model:
-                model = menu.action.res_model
+                model = self.unprefix(menu.action.res_model)
             else:
                 model = 'ir_ui'
             relations.setdefault(model, []).append(menu)
 
         menus_details = []
         for model_name, menus in relations.iteritems():
+            model_name = self.unprefix(model_name)
             filepath = 'views/{}_menus.xml'.format(
                 self.friendly_name(model_name)
             )
@@ -377,7 +378,7 @@ class ModulePrototyper(models.Model):
         :param field_descriptions: list of ir.model.fields records.
         :return: FileDetails instance.
         """
-        python_friendly_name = self.friendly_name(model.model)
+        python_friendly_name = self.friendly_name(self.unprefix(model.model))
         return self.generate_file_details(
             'models/{}.py'.format(python_friendly_name),
             'models/model_name.py.template',
@@ -391,6 +392,10 @@ class ModulePrototyper(models.Model):
         if not name:
             return name
         return re.sub('^x_', '', name)
+
+    @classmethod
+    def is_prefixed(cls, name):
+        return bool(re.match('^x_', name))
 
     @classmethod
     def friendly_name(cls, name):
@@ -428,6 +433,7 @@ class ModulePrototyper(models.Model):
                 'cr': self._cr,
                 # Utility functions
                 'fixup_arch': self.fixup_arch,
+                'is_prefixed': self.is_prefixed,
                 'unprefix': self.unprefix,
                 'wrap': wrap,
 
