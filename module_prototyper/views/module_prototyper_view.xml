@@ -61,12 +61,6 @@
                             <page string="Dependencies">
                                 <field name="dependency_ids"/>
                             </page>
-                            <page string="Data &amp; Demo">
-                                <label for="data_ids"/>
-                                <field name="data_ids"/>
-                                <label for="demo_ids"/>
-                                <field name="demo_ids"/>
-                            </page>
                             <page string="Fields">
                                 <label for="field_ids"/>
                                 <field name="field_ids"/>
@@ -76,6 +70,12 @@
                                 <field name="view_ids"/>
                                 <label for="menu_ids"/>
                                 <field name="menu_ids"/>
+                            </page>
+                            <page string="Data &amp; Demo">
+                                <label for="data_ids"/>
+                                <field name="data_ids"/>
+                                <label for="demo_ids"/>
+                                <field name="demo_ids"/>
                             </page>
                             <page string="Reports">
                                 <label for="report_ids" />
