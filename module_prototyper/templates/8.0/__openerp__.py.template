@@ -41,8 +41,8 @@
     ],
     # only loaded in demonstration mode
     'demo': [
-        {% for demo_file in prototype.demo_ids %}
-            '{{ demo_file.name }}',
+        {% for demo_file in demo_files %}
+            '{{ demo_file }}',
         {% endfor %}
     ],
 
