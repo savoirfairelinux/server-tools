@@ -31,6 +31,7 @@ from datetime import date
 from jinja2 import Environment, FileSystemLoader
 
 from openerp import models, api, fields
+from openerp.tools.safe_eval import safe_eval
 
 from .default_description import get_default_description
 from . import licenses
@@ -170,10 +171,29 @@ class ModulePrototyper(models.Model):
         help=('Enter the list of record rules that you have created and '
               'want to export in this module.')
     )
+    report_ids = fields.Many2many(
+        'ir.actions.report.xml', 'prototype_report_rel',
+        'module_prototyper_id', 'report_id', 'Reports',
+        help=('Enter the list of reports that you have created and '
+              'want to export in this module.')
+    )
+    activity_ids = fields.Many2many(
+        'workflow.activity', 'prototype_wf_activity_rel',
+        'module_prototyper_id', 'activity_id', 'Activities',
+        help=('Enter the list of workflow activities that you have created '
+              'and want to export in this module')
+    )
+    transition_ids = fields.Many2many(
+        'workflow.transition', 'prototype_wf_transition_rel',
+        'module_prototyper_id', 'transition_id', 'Transitions',
+        help=('Enter the list of workflow transitions that you have created '
+              'and want to export in this module')
+    )
 
-    __data_files = []
-    __field_descriptions = {}
     _env = None
+    _data_files = ()
+    _demo_files = ()
+    _field_descriptions = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
 
@@ -211,10 +231,8 @@ class ModulePrototyper(models.Model):
                 for attr_name in dir(field)
                 if not attr_name[0] == '_'
             })
-            # custom fields start with the prefix x_.
-            # it has to be removed.
-            field_description['name'] = re.sub(r'^x_', '', field.name)
-            self.__field_descriptions[field] = field_description
+            field_description['name'] = self.unprefix(field.name)
+            self._field_descriptions[field] = field_description
 
     @api.model
     def generate_files(self):
@@ -224,12 +242,17 @@ class ModulePrototyper(models.Model):
         assert self._env is not None, \
             'Run set_env(api_version) before to generate files.'
 
+        # Avoid sharing these across instances
+        self._data_files = []
+        self._demo_files = []
+        self._field_descriptions = {}
         self.set_field_descriptions()
         file_details = []
         file_details.extend(self.generate_models_details())
         file_details.extend(self.generate_views_details())
         file_details.extend(self.generate_menus_details())
         file_details.append(self.generate_module_init_file_details())
+        file_details.extend(self.generate_data_files())
         # must be the last as the other generations might add information
         # to put in the __openerp__: additional dependencies, views files, etc.
         file_details.append(self.generate_module_openerp_file_details())
@@ -262,7 +285,8 @@ class ModulePrototyper(models.Model):
             '__openerp__.py',
             '__openerp__.py.template',
             prototype=self,
-            data_files=self.__data_files,
+            data_files=self._data_files,
+            demo_fiels=self._demo_files,
         )
 
     @api.model
@@ -278,7 +302,8 @@ class ModulePrototyper(models.Model):
 
     @api.model
     def generate_models_details(self):
-        """Finds the models from the list of fields and generates
+        """
+        Finds the models from the list of fields and generates
         the __init__ file and each models files (one by class).
         """
         files = []
@@ -291,7 +316,8 @@ class ModulePrototyper(models.Model):
         # dependencies = set([dep.id for dep in self.dependencies])
 
         relations = {}
-        for field in self.__field_descriptions.itervalues():
+        field_descriptions = self._field_descriptions or {}
+        for field in field_descriptions.itervalues():
             model = field.get('model_id')
             relations.setdefault(model, []).append(field)
             # dependencies.add(model.id)
@@ -338,7 +364,7 @@ class ModulePrototyper(models.Model):
                     views=views
                 )
             )
-            self.__data_files.append(filepath)
+            self._data_files.append(filepath)
 
         return views_details
 
@@ -366,7 +392,7 @@ class ModulePrototyper(models.Model):
                     menus=menus,
                 )
             )
-            self.__data_files.append(filepath)
+            self._data_files.append(filepath)
 
         return menus_details
 
@@ -386,6 +412,41 @@ class ModulePrototyper(models.Model):
             model=model,
             fields=field_descriptions,
         )
+
+    @api.model
+    def generate_data_files(self):
+        """ Generate data and demo files """
+        data, demo = {}, {}
+        filters = [
+            (data, ir_filter)
+            for ir_filter in self.data_ids
+        ] + [
+            (demo, ir_filter)
+            for ir_filter in self.demo_ids
+        ]
+
+        for target, ir_filter in filters:
+            model = ir_filter.model_id
+            model_obj = self.env[model]
+            target.setdefault(model, model_obj.browse([]))
+            target[model] |= model_obj.search(safe_eval(ir_filter.domain))
+
+        res = []
+        for prefix, model_data, file_list in [
+                ('data', data, self._data_files),
+                ('demo', demo, self._demo_files)]:
+            for model_name, records in model_data.iteritems():
+                fname = self.friendly_name(self.unprefix(model_name))
+                self._data_files.append(fname)
+
+                res.append(self.generate_file_details(
+                    '{0}/{1}.xml'.format(prefix, fname),
+                    'data/model_name.xml.template',
+                    model=model_name,
+                    records=records,
+                ))
+
+        return res
 
     @classmethod
     def unprefix(cls, name):
