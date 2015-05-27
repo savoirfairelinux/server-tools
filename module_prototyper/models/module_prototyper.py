@@ -355,7 +355,7 @@ class ModulePrototyper(models.Model):
         views_details = []
         for model, views in relations.iteritems():
             filepath = 'views/{}_view.xml'.format(
-                self.friendly_name(model)
+                self.friendly_name(self.unprefix(model))
             )
             views_details.append(
                 self.generate_file_details(
