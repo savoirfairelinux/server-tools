@@ -20,6 +20,7 @@
 #
 ##############################################################################
 import base64
+import logging
 import lxml.etree
 import os
 import re
@@ -35,6 +36,8 @@ from openerp.tools.safe_eval import safe_eval
 
 from .default_description import get_default_description
 from . import licenses
+
+_logger = logging.getLogger(__name__)
 
 
 class ModulePrototyper(models.Model):
@@ -464,10 +467,35 @@ class ModulePrototyper(models.Model):
         return name.replace('.', '_')
 
     @classmethod
+    def fixup_domain(cls, domain):
+        """ Fix a domain according to unprefixing of fields """
+        res = []
+        for elem in domain:
+            if len(elem) == 3:
+                elem = list(elem)
+                elem[0] = cls.unprefix(elem[0])
+            res.append(elem)
+        return res
+
+    @classmethod
     def fixup_arch(cls, archstr):
         doc = lxml.etree.fromstring(archstr)
         for elem in doc.xpath("//*[@name]"):
             elem.attrib["name"] = cls.unprefix(elem.attrib["name"])
+
+        for elem in doc.xpath("//*[@attrs]"):
+            try:
+                attrs = safe_eval(elem.attrib["attrs"])
+            except Exception:
+                _logger.error("Unable to eval attribute: %s, skipping",
+                              elem.attrib["attrs"])
+                continue
+
+            if isinstance(attrs, dict):
+                for key, val in attrs.iteritems():
+                    if isinstance(val, (list, tuple)):
+                        attrs[key] = cls.fixup_domain(val)
+                elem.attrib["attrs"] = repr(attrs)
 
         for elem in doc.xpath("//field"):
             # Make fields self-closed by removing useless whitespace
