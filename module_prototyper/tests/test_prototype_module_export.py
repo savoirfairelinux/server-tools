@@ -72,7 +72,7 @@ class test_prototype_module_export(common.TransactionCase):
         file_details = (
             ('test.txt', 'generated'),
         )
-        ret = self.main_model.zip_files(file_details)
+        ret = self.main_model.zip_files(self.exporter, [self.prototype])
         self.assertIsInstance(ret, tuple)
         self.assertIsInstance(
             ret.zip_file, zipfile.ZipFile
