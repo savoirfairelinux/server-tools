@@ -12,7 +12,8 @@
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/master/openerp/addons/base/module/module_data.xml # noqa
     # for the full list
-    'category': '{{ prototype.with_context({}).category_id.name }}',{# In english please! #}
+    {# Use with_context({}) to get english category #}
+    'category': '{{ prototype.with_context({}).category_id.name }}',
     'summary': '{{ prototype.summary }}',
     'description': """
 {{ prototype.description }}
