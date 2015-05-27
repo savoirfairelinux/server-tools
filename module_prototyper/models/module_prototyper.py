@@ -437,10 +437,11 @@ class ModulePrototyper(models.Model):
                 ('demo', demo, self._demo_files)]:
             for model_name, records in model_data.iteritems():
                 fname = self.friendly_name(self.unprefix(model_name))
-                self._data_files.append(fname)
+                filename = '{0}/{1}.xml'.format(prefix, fname)
+                self._data_files.append(filename)
 
                 res.append(self.generate_file_details(
-                    '{0}/{1}.xml'.format(prefix, fname),
+                    filename,
                     'data/model_name.xml.template',
                     model=model_name,
                     records=records,
