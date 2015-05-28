@@ -120,6 +120,8 @@ class PrototypeModuleExport(models.TransientModel):
                 # ready to be saved by the user.
                 file_details = prototype.generate_files()
                 for filename, file_content in file_details:
+                    if isinstance(file_content, unicode):
+                        file_content = file_content.encode('utf-8')
                     # Prefix all names with module technical name
                     filename = os.path.join(prototype.name, filename)
                     info = zipfile.ZipInfo(filename)
