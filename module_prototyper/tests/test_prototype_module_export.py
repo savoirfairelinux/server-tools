@@ -69,9 +69,6 @@ class test_prototype_module_export(common.TransactionCase):
 
     def test_zip_files_returns_tuple(self):
         """Test the method return of the method that generate the zip file."""
-        file_details = (
-            ('test.txt', 'generated'),
-        )
         ret = self.main_model.zip_files(self.exporter, [self.prototype])
         self.assertIsInstance(ret, tuple)
         self.assertIsInstance(
