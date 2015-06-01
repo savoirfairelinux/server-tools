@@ -57,7 +57,6 @@ class ModulePrototyper(models.Model):
             (licenses.LGPL3, 'LGPL-3'),
             (licenses.LGPL3_L, 'LGPL-3 or later version'),
             (licenses.AGPL3, 'Affero GPL-3'),
-            (licenses.AGPL3_L, 'Affero GPL-3 or later version'),
             (licenses.OSI, 'Other OSI Approved Licence'),
             ('Other proprietary', 'Other Proprietary')
         ],
