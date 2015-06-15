@@ -98,9 +98,9 @@ class ModulePrototyper(models.Model):
     )
     version = fields.Char(
         'Version',
-        size=3,
+        size=4,
         default='0.1',
-        help=('Enter the version of your module with 2 digits')
+        help=('Enter the version of your module with 2 numbers')
     )
     auto_install = fields.Boolean(
         'Auto Install',
