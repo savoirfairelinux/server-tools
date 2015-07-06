@@ -4,8 +4,8 @@
     {% for record in records %}
     <!--
         <record id="{{ model }}_{{ loop.index }}" model="{{ model }}">
-        {% for key, val in record.read()[0].items() %}
-            <field name="{{ key }}">{{ val }}</field>
+        {% for key, ref, eval, val in record.read()[0].items() %}
+            <field name="{{ key }}" {% if ref %} ref="{{ ref }}"{% endif %}{% if eval %} eval="{{ eval }}"{% endif %}>{% if val %}{{ val }}{% endif %}</field>
         {% endfor %}
         </record>
        -->
