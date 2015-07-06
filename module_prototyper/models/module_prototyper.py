@@ -198,6 +198,7 @@ class ModulePrototyper(models.Model):
     _field_descriptions = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
+    MAGIC_FIELDS_KEY = ["create_date", "create_uid", "write_uid", "id", "__last_update", "write_date"]
 
     @api.model
     def set_jinja_env(self, api_version):
@@ -441,6 +442,7 @@ class ModulePrototyper(models.Model):
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
+                records = self.cleanup_data(self.fixup_data(records))
 
                 res.append(self.generate_file_details(
                     filename,
@@ -502,6 +504,39 @@ class ModulePrototyper(models.Model):
                 elem.text = None
 
         return lxml.etree.tostring(doc)
+    
+    @classmethod
+    def cleanup_data(cls, records):
+        # make a shallow clone, in order to keep intact the original dict.
+        recs = dict(records)
+        for r in recs:
+            # remove magic columns, in order to speed up xml cleaning afterwards.
+            for key in MAGIC_FIELDS_KEY:
+                del r[key]
+        return r
+
+    @classmethod
+    def order_data(cls, records):
+        # get data in the right order, if it references children with a lower db id.
+        #  1. check the highest db id of a given dict
+        #  2. round to the next e10
+        #  3. add this value to every dependent entry once and update referenced ids
+        #  4. check if there is an item that now references a number above this e10 (this is a child of child)
+        #  5. repeat this, and add every time e10
+        #  6. when nothing is left, sort by this probably temporary sorting colum
+        #  7. that's it
+        return records
+
+    @classmethod
+    def fixup_data(cls, records):
+        records = order_data(records)
+        # http://odoo-80.readthedocs.org/en/latest/reference/data.html
+        # http://stackoverflow.com/questions/26011102/openerp-odoo-model-relationship-xml-syntax
+        # For simplicity, we might be able to work with the eval and the obj, that is available in the context and browse it by the id, that we already have
+        
+
+
+        return records
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
