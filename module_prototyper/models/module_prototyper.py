@@ -40,6 +40,12 @@ from . import licenses
 _logger = logging.getLogger(__name__)
 
 
+class IrFilter(models.Model):
+    _inherit = 'ir.filters'
+
+    sequence = fields.Integer()
+
+
 class ModulePrototyper(models.Model):
     """Module Prototyper gathers different information from all over the
     database to build a prototype of module.
@@ -191,6 +197,7 @@ class ModulePrototyper(models.Model):
         help=('Enter the list of workflow transitions that you have created '
               'and want to export in this module')
     )
+    keep_external_ids  = fields.Boolean(default=False)
 
     _env = None
     _data_files = ()
@@ -198,6 +205,17 @@ class ModulePrototyper(models.Model):
     _field_descriptions = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
+    MAGIC_FIELDS_KEY = ["create_date", "create_uid", "write_uid", "id", "__last_update", "write_date", "display_name", "image"]
+    type_fields = ["xml","html","file","char","base64","int","float","list","tuple"]
+
+    @api.model
+    def set_keep_external_ids(self, bool):
+        """Set the the keep_external_ids from the wizard
+        keep_external_ids will help to update all external ids or keep exsting ones.
+        :param bool: bool, wizard's value
+        """
+        self.keep_external_ids = bool
+        pass
 
     @api.model
     def set_jinja_env(self, api_version):
@@ -415,6 +433,33 @@ class ModulePrototyper(models.Model):
             fields=field_descriptions,
         )
 
+    def topological_sort(self, items):
+        """
+        Items must be provided in the form of an iterable, where the key has a tuple.
+        [
+        [item,[dependencies]],
+        [,[]],
+        [,[]]
+        ]
+        """
+        provided = set()
+        while items:
+             remaining_items = []
+             emitted = False
+
+             for item, dependencies, records in items:
+                 if dependencies.issubset(provided):
+                       yield item, records
+                       provided.add(item)
+                       emitted = True
+                 else:
+                       remaining_items.append( (item, dependencies, records) )
+
+             if not emitted:
+                 raise TopologicalSortFailure()
+
+             items = remaining_items
+
     @api.model
     def generate_data_files(self):
         """ Generate data and demo files """
@@ -433,14 +478,29 @@ class ModulePrototyper(models.Model):
             target.setdefault(model, model_obj.browse([]))
             target[model] |= model_obj.search(safe_eval(ir_filter.domain))
 
+
         res = []
         for prefix, model_data, file_list in [
                 ('data', data, self._data_files),
                 ('demo', demo, self._demo_files)]:
+
+            items = []
+            models = set( m for m, recs in model_data.iteritems() )
+
             for model_name, records in model_data.iteritems():
+                dependencies = set()
+                for f in records._fields:
+                    d = records._fields[f].comodel_name
+                    if d != None and d in models:
+                        dependencies.add(d)
+                # ensure unique values of comodel_types
+                items.append( [model_name, dependencies, records] )
+            
+            for model_name, records in self.topological_sort(items):
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
+                records = self.fixup_data(records)
 
                 res.append(self.generate_file_details(
                     filename,
@@ -502,6 +562,95 @@ class ModulePrototyper(models.Model):
                 elem.text = None
 
         return lxml.etree.tostring(doc)
+
+    @classmethod
+    def order_data(cls, records):
+
+        x = max( [ r.id for r in records ] )
+
+        def key(record):
+            level = 0
+
+            if hasattr(record, 'parent_id'):
+                parent = record.parent_id or False
+
+                while parent:
+                    level += 1
+                    parent = hasattr(parent, 'parent_id') and parent.parent_id
+
+            return (level * x) + record.id
+
+        return records.sorted(key=key)
+
+    #@classmethod
+    @api.model
+    def generate_external_id(self, records):
+        ir_model_data = records.sudo().env['ir.model.data']
+        i = 0
+        x = max( [ r.id for r in records ] )
+        n = len(str(x))
+
+        if not self.keep_external_ids:
+            delete = ir_model_data.search([('model', '=', records._name)])
+            delete.unlink()
+
+        for r in records:
+            i += 1
+            data = ir_model_data.search([('model', '=', r._name), ('res_id', '=', r.id)])
+            if data and self.keep_external_ids:
+                pass
+            elif not self.keep_external_ids:
+                name = '%s_%s' % (r._name.split(".").pop(), str(i).zfill(n))
+                ir_model_data.create({
+                    'model': r._name,
+                    'res_id': r.id,
+                    'module': self.name,
+                    'name': name,
+                })
+
+
+
+    @api.model
+    def fixup_data(cls, records):
+        records = cls.order_data(records)
+        cls.generate_external_id(records)
+
+        # http://odoo-80.readthedocs.org/en/latest/reference/data.html
+        # http://stackoverflow.com/questions/26011102/openerp-odoo-model-relationship-xml-syntax
+        # For simplicity, we might be able to work with the eval and the obj, that is available in the context and browse it by the id, that we already have
+        
+        recs_lst = []
+        for r in records:
+            ext_id = r.get_external_id().values()[0]
+            fields_lst = []
+
+            for field,val in r.read()[0].iteritems():
+                if field in cls.MAGIC_FIELDS_KEY:
+                    continue
+
+                ref = False
+                field_type = False
+
+                # Only catch external ids, if it is a relational field
+                # TODO: Verify, if fields._RelationalMulti (One2many & Many2many) are also represented in an xml with the ref attribute
+                # Else there would need to be added an if statement whcih concstructs the eval attribute accordingly.
+                if isinstance(r._fields[field], fields._Relational):
+                    ref = ",".join(r[field].get_external_id().values())
+                    val = False
+
+                # see: https://www.odoo.com/documentation/8.0/reference/data.html
+                if r.fields_get()[field]['type'] in cls.type_fields:
+                    field_type = r.fields_get()[field]['type']
+
+                fields_lst.append([field, val, ref, field_type])
+
+            # Ordering fields on each record in alfabetical order.
+            fields_lst = sorted(fields_lst, key = lambda k: k[0])
+            # add external id and fields list to rec_lst
+            recs_lst.extend([(ext_id,fields_lst)])
+
+            
+        return sorted(recs_lst, key = lambda k: k[0])
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
