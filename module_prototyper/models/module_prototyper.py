@@ -191,6 +191,7 @@ class ModulePrototyper(models.Model):
         help=('Enter the list of workflow transitions that you have created '
               'and want to export in this module')
     )
+    keep_external_ids  = fields.Boolean(default=False)
 
     _env = None
     _data_files = ()
@@ -198,7 +199,17 @@ class ModulePrototyper(models.Model):
     _field_descriptions = None
     File_details = namedtuple('file_details', ['filename', 'filecontent'])
     template_path = '{}/../templates/'.format(os.path.dirname(__file__))
-    MAGIC_FIELDS_KEY = ["create_date", "create_uid", "write_uid", "id", "__last_update", "write_date"]
+    MAGIC_FIELDS_KEY = ["create_date", "create_uid", "write_uid", "id", "__last_update", "write_date", "display_name", "image"]
+    type_fields = ["xml","html","file","char","base64","int","float","list","tuple"]
+
+    @api.model
+    def set_keep_external_ids(self, bool):
+        """Set the the keep_external_ids from the wizard
+        keep_external_ids will help to update all external ids or keep exsting ones.
+        :param bool: bool, wizard's value
+        """
+        self.keep_external_ids = bool
+        pass
 
     @api.model
     def set_jinja_env(self, api_version):
@@ -442,7 +453,7 @@ class ModulePrototyper(models.Model):
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
-                records = self.cleanup_data(self.fixup_data(records))
+                records = self.fixup_data(records)
 
                 res.append(self.generate_file_details(
                     filename,
@@ -504,39 +515,95 @@ class ModulePrototyper(models.Model):
                 elem.text = None
 
         return lxml.etree.tostring(doc)
-    
-    @classmethod
-    def cleanup_data(cls, records):
-        # make a shallow clone, in order to keep intact the original dict.
-        recs = dict(records)
-        for r in recs:
-            # remove magic columns, in order to speed up xml cleaning afterwards.
-            for key in MAGIC_FIELDS_KEY:
-                del r[key]
-        return r
+
 
     @classmethod
     def order_data(cls, records):
-        # get data in the right order, if it references children with a lower db id.
-        #  1. check the highest db id of a given dict
-        #  2. round to the next e10
-        #  3. add this value to every dependent entry once and update referenced ids
-        #  4. check if there is an item that now references a number above this e10 (this is a child of child)
-        #  5. repeat this, and add every time e10
-        #  6. when nothing is left, sort by this probably temporary sorting colum
-        #  7. that's it
-        return records
 
-    @classmethod
+        x = max( [ r.id for r in records ] )
+
+        def key(record):
+            level = 0
+
+            parent = record.parent_id or False
+                
+            while parent:
+                level += 1
+                parent = parent.parent_id
+
+            return (level * x) + record.id
+
+        return records.sorted(key=key)
+
+    #@classmethod
+    @api.model
+    def generate_external_id(self, records):
+        ir_model_data = records.sudo().env['ir.model.data']
+        i = 0
+        x = max( [ r.id for r in records ] )
+        n = len(str(x))
+
+        if not self.keep_external_ids:
+            delete = ir_model_data.search([('model', '=', records._name)])
+            delete.unlink()
+
+        for r in records:
+            i += 1
+            data = ir_model_data.search([('model', '=', r._name), ('res_id', '=', r.id)])
+            if data and self.keep_external_ids:
+                pass
+            elif not self.keep_external_ids:
+
+                name = '%s_%s_%s' % (r._name.split(".").pop(), self.name , str(i).zfill(n))
+                ir_model_data.create({
+                    'model': r._name,
+                    'res_id': r.id,
+                    'module': r._module,
+                    'name': name,
+                })
+
+
+
+    @api.model
     def fixup_data(cls, records):
-        records = order_data(records)
+        records = cls.order_data(records)
+        cls.generate_external_id(records)
+
         # http://odoo-80.readthedocs.org/en/latest/reference/data.html
         # http://stackoverflow.com/questions/26011102/openerp-odoo-model-relationship-xml-syntax
         # For simplicity, we might be able to work with the eval and the obj, that is available in the context and browse it by the id, that we already have
         
+        recs_lst = []
+        for r in records:
+            ext_id = r.get_external_id().values()[0]
+            fields_lst = []
 
+            for field,val in r.read()[0].iteritems():
+                if field in cls.MAGIC_FIELDS_KEY:
+                    continue
 
-        return records
+                ref = False
+                field_type = False
+
+                # If not unicode (contains ids)
+                # the is not image is hacky and only supports te case when an image is loaded into an "image" field
+                if field != "image" and not isinstance(r[field], (int,float,unicode,str)):
+                    ref = ",".join(r[field].get_external_id().values())
+                    val = False
+
+                # see: https://www.odoo.com/documentation/8.0/reference/data.html
+                if r.fields_get()[field]['type'] in cls.type_fields:
+                    field_type = r.fields_get()[field]['type']
+
+                fields_lst.append([field, val, ref, field_type])
+
+            # Ordering fields on each record in alfabetical order.
+            fields_lst = sorted(fields_lst, key = lambda k: k[0])
+            # add external id and fields list to rec_lst
+            recs_lst.extend([(ext_id,fields_lst)])
+
+            
+        return sorted(recs_lst, key = lambda k: k[0])
 
     @api.model
     def generate_file_details(self, filename, template, **kwargs):
