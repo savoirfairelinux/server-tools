@@ -525,7 +525,7 @@ class ModulePrototyper(models.Model):
         def key(record):
             level = 0
 
-            parent = record.parent_id or False
+            parent = record.parent_id and record.parent_id or False
                 
             while parent:
                 level += 1
