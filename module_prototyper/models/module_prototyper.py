@@ -585,9 +585,10 @@ class ModulePrototyper(models.Model):
                 ref = False
                 field_type = False
 
-                # If not unicode (contains ids)
-                # the is not image is hacky and only supports te case when an image is loaded into an "image" field
-                if field != "image" and not isinstance(r[field], (int,float,unicode,str)):
+                # Only catch external ids, if it is a relational field
+                # TODO: Verify, if fields._RelationalMulti (One2many & Many2many) are also represented in an xml with the ref attribute
+                # Else there would need to be added an if statement whcih concstructs the eval attribute accordingly.
+                if isinstance(r._fields[field], fields._Relational):
                     ref = ",".join(r[field].get_external_id().values())
                     val = False
 
