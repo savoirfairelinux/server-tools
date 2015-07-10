@@ -525,11 +525,12 @@ class ModulePrototyper(models.Model):
         def key(record):
             level = 0
 
-            parent = record.parent_id and record.parent_id or False
-                
-            while parent:
-                level += 1
-                parent = parent.parent_id
+            if hasattr(record, 'parent_id'):
+                parent = record.parent_id or False
+
+                while parent:
+                    level += 1
+                    parent = hasattr(parent, 'parent_id') and parent.parent_id
 
             return (level * x) + record.id
 
@@ -553,12 +554,11 @@ class ModulePrototyper(models.Model):
             if data and self.keep_external_ids:
                 pass
             elif not self.keep_external_ids:
-
-                name = '%s_%s_%s' % (r._name.split(".").pop(), self.name , str(i).zfill(n))
+                name = '%s_%s' % (r._name.split(".").pop(), str(i).zfill(n))
                 ir_model_data.create({
                     'model': r._name,
                     'res_id': r.id,
-                    'module': r._module,
+                    'module': self.name,
                     'name': name,
                 })
 
