@@ -40,6 +40,11 @@ from . import licenses
 _logger = logging.getLogger(__name__)
 
 
+class IrFilter(models.Model):
+    _inherit = 'ir.filters'
+
+    sequence = fields.Integer()
+
 class ModulePrototyper(models.Model):
     """Module Prototyper gathers different information from all over the
     database to build a prototype of module.
