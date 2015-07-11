@@ -450,11 +450,48 @@ class ModulePrototyper(models.Model):
             target.setdefault(model, model_obj.browse([]))
             target[model] |= model_obj.search(safe_eval(ir_filter.domain))
 
+
         res = []
         for prefix, model_data, file_list in [
                 ('data', data, self._data_files),
                 ('demo', demo, self._demo_files)]:
+
+            models_ordered = []
+            key_0 = int(0)
+            key_1 = int(1)
+
             for model_name, records in model_data.iteritems():
+                comodel_types = []
+                for f in model_name._fields:
+                    if model_name._fields[f].comodel_name != None:
+                        comodel_types.append(model_name._fields[f].comodel_name)
+                # ensure unique values of comodel_types
+                models_ordered.append([key_0,model_name,set(comodel_types),key_1, records)
+
+            
+            l = len(models_ordered)
+            # The maximum possible ancestry hirarchy is limited by the number of models
+            # Loop over this algorithm that many times
+            for k in xrange(0,l,1):
+                for i in xrange(0,l-1,1):
+                    # It the key hasn't changed since the previous run, it means there aren't any ancestors (left).
+                    # Exclude it from the cycle.
+                    if models_ordered[i][0] != models_ordered[i][3]:
+                        # Reset the previous key value.
+                        models_ordered[i][3] = models_ordered[i][0]
+                        # Loop through all the fields of the current model.
+                        for f in models_ordered[i][2]:
+                            # Loop through all the models of this export.
+                            for m in models_ordered:
+                                # If field refers to a model, that is present in the export, lower the _current_ model's _current_ key
+                                # Read: If the field refers to a model, the field's model is an ancestor of the other model.
+                                if m[1] != models_ordered[i][1]: # But only if it's not autoreferring.
+                                    if f == m[1]: models_ordered[i][0] -= 1
+            sorted(models_ordered, key = lambda k: k[0])
+
+
+
+            for j1, model_name, j3, j4, records in models_ordered:
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
