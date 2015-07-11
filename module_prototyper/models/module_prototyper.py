@@ -432,7 +432,7 @@ class ModulePrototyper(models.Model):
             fields=field_descriptions,
         )
 
-    @api.model
+        @api.model
     def generate_data_files(self):
         """ Generate data and demo files """
         data, demo = {}, {}
@@ -457,16 +457,16 @@ class ModulePrototyper(models.Model):
                 ('demo', demo, self._demo_files)]:
 
             models_ordered = []
-            key_0 = int(0)
-            key_1 = int(1)
+            key_0 = 0
+            key_1 = 1
 
             for model_name, records in model_data.iteritems():
                 comodel_types = []
-                for f in model_name._fields:
-                    if model_name._fields[f].comodel_name != None:
-                        comodel_types.append(model_name._fields[f].comodel_name)
+                for f in records._fields:
+                    if records._fields[f].comodel_name != None:
+                        comodel_types.append(records._fields[f].comodel_name)
                 # ensure unique values of comodel_types
-                models_ordered.append([key_0,model_name,set(comodel_types),key_1, records)
+                models_ordered.append([key_0,model_name,set(comodel_types),key_1, records])
 
             
             l = len(models_ordered)
@@ -487,7 +487,7 @@ class ModulePrototyper(models.Model):
                                 # Read: If the field refers to a model, the field's model is an ancestor of the other model.
                                 if m[1] != models_ordered[i][1]: # But only if it's not autoreferring.
                                     if f == m[1]: models_ordered[i][0] -= 1
-            sorted(models_ordered, key = lambda k: k[0])
+            sorted(models_ordered, key = lambda k: k[0], reverse=True)
 
 
 
