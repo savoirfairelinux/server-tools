@@ -480,7 +480,6 @@ class ModulePrototyper(models.Model):
 
 
         res = []
-        import pdb; pdb.set_trace()  # breakpoint 37b57531 //
         for prefix, model_data, file_list in [
                 ('data', data, self._data_files),
                 ('demo', demo, self._demo_files)]:
@@ -492,11 +491,12 @@ class ModulePrototyper(models.Model):
                     if records._fields[f].comodel_name != None:
                         dependencies.append(records._fields[f].comodel_name)
                 # ensure unique values of comodel_types
-                items.append( [model_name, dependencies, records] )
+            items.append( [model_name, dependencies, records] )
 
 
-            items_cleaned = [[model_name, [d for d in item[1] if d.issubset(key_list)], records] for item in items]
+            items_cleaned = [[model_name, [d for d in item[1] if frozenset(d).issubset(set(dependencies))], records] for item in items]
 
+            import pdb; pdb.set_trace()  # breakpoint 594a00dc //
             for model_name, records in topological_sort(items_cleaned):
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
