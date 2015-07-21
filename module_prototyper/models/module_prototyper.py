@@ -496,10 +496,7 @@ class ModulePrototyper(models.Model):
                 # ensure unique values of comodel_types
                 items.append( [model_name, dependencies, records] )
             
-
-            import pdb; pdb.set_trace()  # breakpoint d5793fca //
             for model_name, records in self.topological_sort(items):
-                import pdb; pdb.set_trace()  # breakpoint de17549f //
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
