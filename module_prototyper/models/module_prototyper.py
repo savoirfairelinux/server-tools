@@ -433,7 +433,7 @@ class ModulePrototyper(models.Model):
             fields=field_descriptions,
         )
 
-    def topological_sort(items):
+    def topological_sort(self, items):
         """
         Items must be provided in the form of an iterable, where the key has a tuple.
         [
@@ -449,7 +449,7 @@ class ModulePrototyper(models.Model):
 
              for item, dependencies, records in items:
                  if dependencies.issubset(provided):
-                       yield item
+                       yield item, records
                        provided.add(item)
                        emitted = True
                  else:
@@ -485,19 +485,21 @@ class ModulePrototyper(models.Model):
                 ('demo', demo, self._demo_files)]:
 
             items = []
+            models = set( m for m, recs in model_data.iteritems() )
+
             for model_name, records in model_data.iteritems():
-                dependencies = []
+                dependencies = set()
                 for f in records._fields:
-                    if records._fields[f].comodel_name != None:
-                        dependencies.append(records._fields[f].comodel_name)
+                    d = records._fields[f].comodel_name
+                    if d != None and d in models:
+                        dependencies.add(d)
                 # ensure unique values of comodel_types
-            items.append( [model_name, dependencies, records] )
+                items.append( [model_name, dependencies, records] )
+            
 
-
-            items_cleaned = [[model_name, [d for d in item[1] if frozenset(d).issubset(set(dependencies))], records] for item in items]
-
-            import pdb; pdb.set_trace()  # breakpoint 594a00dc //
-            for model_name, records in topological_sort(items_cleaned):
+            import pdb; pdb.set_trace()  # breakpoint d5793fca //
+            for model_name, records in self.topological_sort(items):
+                import pdb; pdb.set_trace()  # breakpoint de17549f //
                 fname = self.friendly_name(self.unprefix(model_name))
                 filename = '{0}/{1}.xml'.format(prefix, fname)
                 self._data_files.append(filename)
