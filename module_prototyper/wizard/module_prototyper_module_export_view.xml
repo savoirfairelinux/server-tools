@@ -12,6 +12,7 @@
           <group string="Export Settings" states="choose" col="6">
             <group colspan="2">
               <field name="api_version"/>
+              <field name="keep_external_ids"/>
             </group>
             <group colspan="4">
             </group>

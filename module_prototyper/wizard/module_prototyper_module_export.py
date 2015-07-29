@@ -50,6 +50,16 @@ class PrototypeModuleExport(models.TransientModel):
         default='choose'
     )
 
+    keep_external_ids  = fields.Boolean(
+        string="Preserve existing external IDs?",
+        help="""Useful, if you are using this module for 
+        generating module data from different sources.
+        Keep for example, when shipping data updates
+        with this model. You may well need to still 
+        manually clean up and mix in the results.""",
+        default=False
+    )
+
     @api.model
     def action_export(self, ids):
         """
@@ -113,6 +123,10 @@ class PrototypeModuleExport(models.TransientModel):
                 # They will help the program to find the template to render the
                 # files with.
                 prototype.set_jinja_env(wizard.api_version)
+
+                # will let the user decide on the wizard wether he wants 
+                # to kkep external ids of the modules data or set fresh ones
+                prototype.set_keep_external_ids(wizard.keep_external_ids)
 
                 # generate_files ask the prototype to investigate the input and
                 # to generate the file templates according to it.  zip_files,
