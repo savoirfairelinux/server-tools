@@ -1,5 +1,5 @@
-# -*- encoding: utf-8 -*-
-# #############################################################################
+# -*- coding: utf-8 -*-
+##############################################################################
 #
 # OpenERP, Open Source Management Solution
 # This module copyright (C) 2010 - 2014 Savoir-faire Linux
@@ -24,9 +24,9 @@ import zipfile
 import StringIO
 
 
-class test_prototype_module_export(common.TransactionCase):
+class TestPrototypeModuleExport(common.TransactionCase):
     def setUp(self):
-        super(test_prototype_module_export, self).setUp()
+        super(TestPrototypeModuleExport, self).setUp()
         self.main_model = self.env['module_prototyper.module.export']
         self.prototype_model = self.env['module_prototyper']
         self.module_category_model = self.env[

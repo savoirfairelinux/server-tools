@@ -1,5 +1,5 @@
-# -*- encoding: utf-8 -*-
-# #############################################################################
+# -*- coding: utf-8 -*-
+##############################################################################
 #
 #    OpenERP, Open Source Management Solution
 #    This module copyright (C) 2010 - 2014 Savoir-faire Linux
@@ -323,7 +323,7 @@ class ModulePrototyper(models.Model):
             '__openerp__.py.template',
             prototype=self,
             data_files=self._data_files,
-            demo_fiels=self._demo_files,
+            demo_files=self._demo_files,
         )
 
     @api.model
